@@ -417,44 +417,52 @@ def add_to_cart():
     app.logger.info(f"Add to cart - Session Keys before: {list(session.keys())}")
     app.logger.info(f"Add to cart - Session Cart before: {session.get('cart')}")
     
-    # Get current cart from session
-    cart = session.get('cart', [])
-    
-    # If cart wasn't a list, initialize it
-    if not isinstance(cart, list):
-        cart = []
-    
-    # Convert cart items to dictionaries if they aren't already
-    cart = [dict(item) if not isinstance(item, dict) else item for item in cart]
-    
-    # Check if item already in cart
-    item_found = False
-    for item in cart:
-        if str(item['crop_id']) == str(crop_id):
-            item['quantity'] = quantity
-            item_found = True
-            break
-    
-    if not item_found:
-        cart.append({'crop_id': int(crop_id), 'quantity': quantity})
-    
-    # Explicitly update the session
-    session['cart'] = cart
-    
-    # Ensure session is saved immediately
-    session.modified = True
-    
-    # Debug after update
-    app.logger.info(f"Add to cart - Cart data after update: {cart}")
-    app.logger.info(f"Add to cart - Session Cart after storing: {session.get('cart')}")
-    app.logger.info(f"Add to cart - Session Keys after: {list(session.keys())}")
-    
-    return jsonify({
-        'success': True, 
-        'message': 'Item added to cart.',
-        'cart_count': len(cart),
-        'debug_cart': cart  # Include cart data in response for debugging
-    })
+    try:
+        # Get current cart from session
+        cart = session.get('cart', [])
+        
+        # If cart wasn't a list, initialize it
+        if not isinstance(cart, list):
+            cart = []
+        
+        # Convert cart items to dictionaries if they aren't already
+        cart = [dict(item) if not isinstance(item, dict) else item for item in cart]
+        
+        # Check if item already in cart
+        item_found = False
+        for item in cart:
+            if str(item.get('crop_id')) == str(crop_id):
+                item['quantity'] = quantity
+                item_found = True
+                break
+        
+        if not item_found:
+            cart.append({'crop_id': int(crop_id), 'quantity': quantity})
+        
+        # Explicitly update the session
+        session['cart'] = cart
+        
+        # Force session modification flag
+        session.modified = True
+        
+        # Debug after update
+        app.logger.info(f"Add to cart - Cart data after update: {cart}")
+        app.logger.info(f"Add to cart - Session Cart after storing: {session.get('cart')}")
+        app.logger.info(f"Add to cart - Session Keys after: {list(session.keys())}")
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Item added to cart.',
+            'cart_count': len(cart),
+            'debug_cart': cart  # Include cart data in response for debugging
+        })
+    except Exception as e:
+        app.logger.error(f"Error in add_to_cart: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': 'An error occurred while updating your cart. Please try again.',
+            'error': str(e)
+        })
 
 @app.route('/api/cart/remove', methods=['POST'])
 @login_required
@@ -475,29 +483,37 @@ def remove_from_cart():
     app.logger.info(f"Remove from cart - Session Keys before: {list(session.keys())}")
     app.logger.info(f"Remove from cart - Session Cart before: {session.get('cart')}")
     
-    # Get current cart from session
-    cart = session.get('cart', [])
-    
-    # If cart wasn't a list, initialize it
-    if not isinstance(cart, list):
-        cart = []
-    
-    # Filter out the item to remove
-    new_cart = [item for item in cart if str(item.get('crop_id')) != str(crop_id)]
-    
-    # Update the session
-    session['cart'] = new_cart
-    session.modified = True
-    
-    # Debug after update
-    app.logger.info(f"Remove from cart - Session Cart after update: {session.get('cart')}")
-    app.logger.info(f"Remove from cart - Cart length: {len(new_cart)}")
-    
-    return jsonify({
-        'success': True, 
-        'message': 'Item removed from cart.', 
-        'cart_count': len(new_cart)
-    })
+    try:
+        # Get current cart from session
+        cart = session.get('cart', [])
+        
+        # If cart wasn't a list, initialize it
+        if not isinstance(cart, list):
+            cart = []
+        
+        # Filter out the item to remove
+        new_cart = [item for item in cart if str(item.get('crop_id')) != str(crop_id)]
+        
+        # Update the session
+        session['cart'] = new_cart
+        session.modified = True
+        
+        # Debug after update
+        app.logger.info(f"Remove from cart - Session Cart after update: {session.get('cart')}")
+        app.logger.info(f"Remove from cart - Cart length: {len(new_cart)}")
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Item removed from cart.', 
+            'cart_count': len(new_cart)
+        })
+    except Exception as e:
+        app.logger.error(f"Error in remove_from_cart: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': 'An error occurred while removing the item from your cart. Please try again.',
+            'error': str(e)
+        })
 
 @app.route('/api/cart/update', methods=['POST'])
 @login_required
@@ -528,40 +544,48 @@ def update_cart():
     app.logger.info(f"Update cart - Session Keys before: {list(session.keys())}")
     app.logger.info(f"Update cart - Session Cart before: {session.get('cart')}")
     
-    # Get current cart from session
-    cart = session.get('cart', [])
-    
-    # If cart wasn't a list, initialize it
-    if not isinstance(cart, list):
-        cart = []
-    
-    # Convert cart items to dictionaries if they aren't already
-    cart = [dict(item) if not isinstance(item, dict) else item for item in cart]
-    
-    # Update quantity in cart
-    item_found = False
-    for item in cart:
-        if str(item.get('crop_id')) == str(crop_id):
-            item['quantity'] = quantity
-            item_found = True
-            break
-    
-    # If item not found (unlikely but possible in case of race conditions)
-    if not item_found:
-        cart.append({'crop_id': int(crop_id), 'quantity': quantity})
-    
-    # Update session
-    session['cart'] = cart
-    session.modified = True
-    
-    # Debug after update
-    app.logger.info(f"Update cart - Session Cart after update: {session.get('cart')}")
-    
-    return jsonify({
-        'success': True, 
-        'message': 'Cart updated.', 
-        'cart_count': len(cart)
-    })
+    try:
+        # Get current cart from session
+        cart = session.get('cart', [])
+        
+        # If cart wasn't a list, initialize it
+        if not isinstance(cart, list):
+            cart = []
+        
+        # Convert cart items to dictionaries if they aren't already
+        cart = [dict(item) if not isinstance(item, dict) else item for item in cart]
+        
+        # Update quantity in cart
+        item_found = False
+        for item in cart:
+            if str(item.get('crop_id')) == str(crop_id):
+                item['quantity'] = quantity
+                item_found = True
+                break
+        
+        # If item not found (unlikely but possible in case of race conditions)
+        if not item_found:
+            cart.append({'crop_id': int(crop_id), 'quantity': quantity})
+        
+        # Update session
+        session['cart'] = cart
+        session.modified = True
+        
+        # Debug after update
+        app.logger.info(f"Update cart - Session Cart after update: {session.get('cart')}")
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Cart updated.', 
+            'cart_count': len(cart)
+        })
+    except Exception as e:
+        app.logger.error(f"Error in update_cart: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': 'An error occurred while updating your cart. Please try again.',
+            'error': str(e)
+        })
 
 @app.route('/customer/checkout', methods=['GET', 'POST'])
 @login_required
