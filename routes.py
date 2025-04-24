@@ -366,23 +366,27 @@ def cart():
             app.logger.error(f"Error processing cart item {item}: {str(e)}")
     
     # Group by farmer
-    farmers = {}
+    farmers_dict = {}
     for item in cart_data:
-        if item['farmer_id'] not in farmers:
-            farmers[item['farmer_id']] = {
+        if item['farmer_id'] not in farmers_dict:
+            farmers_dict[item['farmer_id']] = {
                 'farmer_id': item['farmer_id'],
                 'farmer_name': item['farmer_name'],
-                'items': [],
+                'cart_items': [],  # Renamed from 'items' to 'cart_items' to avoid conflict with dict.items()
                 'total': 0
             }
-        farmers[item['farmer_id']]['items'].append(item)
-        farmers[item['farmer_id']]['total'] += item['subtotal']
+        farmers_dict[item['farmer_id']]['cart_items'].append(item)
+        farmers_dict[item['farmer_id']]['total'] += item['subtotal']
+    
+    # Convert to list for template rendering
+    farmers_list = list(farmers_dict.values())
     
     # Additional debugging
     app.logger.info(f"Cart data processed: {len(cart_data)} valid items")
-    app.logger.info(f"Farmers in cart: {list(farmers.keys())}")
+    app.logger.info(f"Farmers in cart: {list(farmers_dict.keys())}")
+    app.logger.info(f"Farmers data structure: {farmers_list}")
     
-    return render_template('customer/cart.html', farmers=farmers.values(), user=user)
+    return render_template('customer/cart.html', farmers=farmers_list, user=user)
 
 @app.route('/api/cart/add', methods=['POST'])
 @login_required

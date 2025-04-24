@@ -47,7 +47,7 @@
                             <h5 class="mb-0">{{ farmer.farmer_name }}</h5>
                         </div>
                         <div class="card-body">
-                            {% for item in farmer.items %}
+                            {% for item in farmer.cart_items %}
                                 <div class="cart-item" id="cart-item-{{ item.crop_id }}">
                                     <div class="row align-items-center">
                                         <div class="col-md-2 col-3">
@@ -83,7 +83,7 @@
                             {% endfor %}
                         </div>
                         <div class="card-footer bg-transparent d-flex justify-content-between">
-                            <span class="fw-bold">Subtotal ({{ farmer.items|length }} items):</span>
+                            <span class="fw-bold">Subtotal ({{ farmer.cart_items|length }} items):</span>
                             <span class="fw-bold">₹{{ '%.2f'|format(farmer.total) }}</span>
                         </div>
                     </div>
