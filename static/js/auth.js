@@ -47,33 +47,30 @@ function showToast(message, type = 'success') {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle login form submission
+    // Handle login form validation
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
             // Basic validation
             if (!email || !password) {
+                e.preventDefault();
                 showToast('Please enter both email and password.', 'danger');
-                return;
+                return false;
             }
             
-            // Submit form normally (server-side handling)
-            document.getElementById('login-form').setAttribute('novalidate', '');
-            document.getElementById('login-form').submit();
+            // Form submission will proceed naturally if all validations pass
+            return true;
         });
     }
     
-    // Handle registration form submission
+    // Handle registration form validation
     const registerForm = document.getElementById('register-form');
     if (registerForm) {
+        // Client-side validation handling - don't prevent default form submission
         registerForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
             const email = document.getElementById('email').value;
             const fullName = document.getElementById('full_name').value;
             const password = document.getElementById('password').value;
@@ -81,30 +78,33 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Basic validation
             if (!email || !fullName || !password || !confirmPassword) {
+                e.preventDefault();
                 showToast('Please fill in all required fields.', 'danger');
-                return;
+                return false;
             }
             
             if (password !== confirmPassword) {
+                e.preventDefault();
                 showToast('Passwords do not match.', 'danger');
-                return;
+                return false;
             }
             
             if (password.length < 6) {
+                e.preventDefault();
                 showToast('Password must be at least 6 characters long.', 'danger');
-                return;
+                return false;
             }
             
             // Email validation
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
+                e.preventDefault();
                 showToast('Please enter a valid email address.', 'danger');
-                return;
+                return false;
             }
             
-            // Submit form normally (server-side handling)
-            document.getElementById('register-form').setAttribute('novalidate', '');
-            document.getElementById('register-form').submit();
+            // Form submission will proceed naturally if all validations pass
+            return true;
         });
     }
     
