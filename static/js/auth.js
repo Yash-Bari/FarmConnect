@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Submit form normally (server-side handling)
-            this.submit();
+            loginForm.submit();
         });
     }
     
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Submit form normally (server-side handling)
-            this.submit();
+            registerForm.submit();
         });
     }
     
