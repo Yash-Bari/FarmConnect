@@ -1,0 +1,157 @@
+Build a complete web application that facilitates direct selling of crops from farmers to customers with the following specifications:
+Overview
+Create a two-sided marketplace platform where:
+
+Farmers can register, list their crops, and manage orders
+Customers can browse crops from all farmers, add items to cart, make payments, and track orders
+
+Tech Stack
+
+Frontend: React.js with responsive design
+Backend: Flask (Python) with RESTful API architecture
+Database: SQLite for development (with migration path to PostgreSQL for production)
+Authentication: JWT-based authentication system
+File Storage: Local file system for development (with cloud storage integration capability)
+
+User Types & Features
+Common Features (Both Users)
+
+Registration and login system with email verification
+Profile completion with personal details
+Secure authentication and authorization
+Password reset functionality
+Notification system for updates
+
+Farmer Features
+
+Profile Management
+
+Upload profile picture
+Add farm details (location, size, growing practices)
+Add bank/UPI payment information
+
+
+Dashboard
+
+Statistical overview of crops (listed, sold, revenue)
+Recent order notifications
+Performance metrics
+Earnings reports
+
+
+Crop Management
+
+Add new crops with details (name, category, quantity, price, images, description, harvest date)
+Edit existing crop listings
+Remove crop listings
+Set availability status
+
+
+Order Management
+
+View incoming orders with status
+Accept/reject order requests
+Update order status (processing, shipped, delivered)
+View customer payment confirmations
+Contact customers regarding orders
+
+
+
+Customer Features
+
+Profile Management
+
+Add delivery address
+Set preferred payment methods
+Order history
+
+
+Shopping Experience
+
+Browse all available crops (with filtering and sorting)
+Search functionality
+View individual crop details
+Add items to cart
+
+
+Checkout Process
+
+Review cart items
+Select delivery options
+View UPI payment QR code
+Upload payment screenshot
+Order confirmation
+
+
+Order Tracking
+
+View estimated delivery timeline
+Check current order status
+Order history with details
+
+
+
+Database Schema
+Design a database with these essential tables:
+
+Users (common fields with user_type flag)
+FarmerProfiles
+CustomerProfiles
+Crops
+Orders
+OrderItems
+Payments
+Notifications
+
+API Endpoints
+Create comprehensive RESTful API endpoints for:
+
+User authentication (register, login, verify, reset password)
+Profile management (get, update)
+Crop management (CRUD operations)
+Cart functionality
+Order processing
+Payment handling
+File uploads (profile pictures, crop images, payment screenshots)
+
+UI/UX Requirements
+
+Clean, intuitive interface with responsive design
+Different dashboard views based on user type
+Consistent design language throughout
+Loader animations for asynchronous operations
+Toast notifications for user actions
+Form validations with helpful error messages
+
+Security Considerations
+
+Input validation on both client and server
+Protection against common web vulnerabilities (XSS, CSRF)
+Secure file upload handling
+Payment information security
+Data encryption for sensitive information
+
+Implementation Steps
+
+Set up project structure for both frontend and backend
+Implement authentication system
+Create database models and migrations
+Develop core API endpoints
+Build frontend components
+Implement user flows (registration, profile completion)
+Develop farmer-specific features
+Develop customer-specific features
+Implement payment flow
+Add notification system
+Perform testing and debugging
+Optimize for performance
+
+Deliverables
+
+Complete source code for both frontend and backend
+Database schema and migrations
+API documentation
+Setup and deployment instructions
+Sample data for testing
+
+Please provide a complete implementation following these specifications, with clean, well-documented code and proper error handling throughout the application.
