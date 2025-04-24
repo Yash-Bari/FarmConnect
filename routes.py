@@ -320,6 +320,13 @@ def cart():
         flash('Unauthorized access.', 'danger')
         return redirect(url_for('login'))
     
+    # Debug output to see if the session has a cart
+    print(f"Session ID: {session.sid}")
+    print(f"Session Cart: {session.get('cart')}")
+    print(f"Session Keys: {list(session.keys())}")
+    app.logger.info(f"Session Cart: {session.get('cart')}")
+    app.logger.info(f"Session Keys: {list(session.keys())}")
+    
     # Get cart from session
     cart_items = session.get('cart', [])
     
@@ -401,6 +408,13 @@ def add_to_cart():
     session['cart'] = cart
     # Mark session as modified to ensure it's saved
     session.modified = True
+    
+    # Debug output
+    print(f"Add to cart - Session ID: {session.sid}")
+    print(f"Add to cart - Session Cart (after add): {session.get('cart')}")
+    print(f"Add to cart - Session Keys: {list(session.keys())}")
+    app.logger.info(f"Add to cart - Session Cart (after add): {session.get('cart')}")
+    app.logger.info(f"Add to cart - Session Keys: {list(session.keys())}")
     
     return jsonify({'success': True, 'message': 'Item added to cart.', 'cart_count': len(cart)})
 
