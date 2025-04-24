@@ -446,7 +446,7 @@ def remove_from_cart():
 def update_cart():
     user = current_user
     
-    if not user or user.user_type != 'customer':
+    if user.user_type != 'customer':
         return jsonify({'success': False, 'message': 'Unauthorized access.'})
     
     data = request.json
@@ -483,7 +483,7 @@ def update_cart():
 def checkout():
     user = current_user
     
-    if not user or user.user_type != 'customer':
+    if user.user_type != 'customer':
         flash('Unauthorized access.', 'danger')
         return redirect(url_for('login'))
     
@@ -590,7 +590,7 @@ def checkout():
 def customer_orders():
     user = current_user
     
-    if not user or user.user_type != 'customer':
+    if user.user_type != 'customer':
         flash('Unauthorized access.', 'danger')
         return redirect(url_for('login'))
     
@@ -602,7 +602,7 @@ def customer_orders():
 def order_payment(order_id):
     user = current_user
     
-    if not user or user.user_type != 'customer':
+    if user.user_type != 'customer':
         flash('Unauthorized access.', 'danger')
         return redirect(url_for('login'))
     

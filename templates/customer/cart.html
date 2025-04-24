@@ -6,6 +6,19 @@
 <div class="container py-4">
     <h1 class="mb-4">Your Shopping Cart</h1>
     
+    <!-- Debug Session Data (will be removed in production) -->
+    {% if session.get('cart') %}
+    <div class="alert alert-info mb-3">
+        <h6>Debug - Session Cart Data:</h6>
+        <pre class="mb-0">{{ session.get('cart') }}</pre>
+    </div>
+    {% else %}
+    <div class="alert alert-warning mb-3">
+        <h6>Debug:</h6>
+        <p class="mb-0">No cart data found in session</p>
+    </div>
+    {% endif %}
+    
     {% if farmers %}
         <div class="row">
             <div class="col-lg-8">

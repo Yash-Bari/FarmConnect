@@ -155,6 +155,34 @@
         {% endif %}
     {% endwith %}
     
+    <!-- Debug session info (will be removed in production) -->
+    {% if current_user.is_authenticated %}
+    <div class="container mt-2">
+        <div class="accordion accordion-flush" id="debugAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#debugSession" aria-expanded="false" aria-controls="debugSession">
+                        Debug: Session Information
+                    </button>
+                </h2>
+                <div id="debugSession" class="accordion-collapse collapse" data-bs-parent="#debugAccordion">
+                    <div class="accordion-body">
+                        <p><strong>Session ID:</strong> {{ session.sid if session.sid else 'None' }}</p>
+                        <p><strong>Session Items:</strong></p>
+                        <ul>
+                            {% for key, value in session.items() %}
+                            <li><strong>{{ key }}:</strong> {{ value }}</li>
+                            {% else %}
+                            <li>No session items.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
     <!-- Main content -->
     <main>
         {% block content %}{% endblock %}
