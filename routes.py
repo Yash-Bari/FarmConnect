@@ -321,30 +321,49 @@ def cart():
         return redirect(url_for('login'))
     
     # Debug output to see if the session has a cart
-    print(f"Session Cart in cart route: {session.get('cart')}")
-    print(f"Session Keys in cart route: {list(session.keys())}")
     app.logger.info(f"Session Cart in cart route: {session.get('cart')}")
     app.logger.info(f"Session Keys in cart route: {list(session.keys())}")
     
     # Get cart from session
     cart_items = session.get('cart', [])
     
+    # If cart wasn't a list, initialize it
+    if not isinstance(cart_items, list):
+        cart_items = []
+        session['cart'] = cart_items
+        session.modified = True
+        app.logger.warning("Cart was not a list. Initialized empty cart.")
+    
     # Fetch crop details for each item in cart
     cart_data = []
     for item in cart_items:
-        crop = Crop.query.get(item['crop_id'])
-        if crop and crop.is_available:
-            farmer = FarmerProfile.query.get(crop.farmer_id)
-            cart_data.append({
-                'crop_id': crop.id,
-                'name': crop.name,
-                'farmer_name': farmer.farm_name,
-                'price': crop.price,
-                'quantity': item['quantity'],
-                'unit': crop.unit,
-                'subtotal': crop.price * item['quantity'],
-                'farmer_id': farmer.id
-            })
+        # Skip invalid items
+        if not isinstance(item, dict) or 'crop_id' not in item:
+            app.logger.warning(f"Invalid cart item found: {item}")
+            continue
+            
+        try:
+            crop_id = int(item['crop_id'])
+            crop = Crop.query.get(crop_id)
+            if crop and crop.is_available:
+                farmer = FarmerProfile.query.get(crop.farmer_id)
+                if farmer:
+                    cart_data.append({
+                        'crop_id': crop.id,
+                        'name': crop.name,
+                        'farmer_name': farmer.farm_name,
+                        'price': crop.price,
+                        'quantity': float(item['quantity']),
+                        'unit': crop.unit,
+                        'subtotal': crop.price * float(item['quantity']),
+                        'farmer_id': farmer.id
+                    })
+                else:
+                    app.logger.warning(f"Farmer not found for crop {crop_id}")
+            else:
+                app.logger.warning(f"Crop not found or not available: {crop_id}")
+        except Exception as e:
+            app.logger.error(f"Error processing cart item {item}: {str(e)}")
     
     # Group by farmer
     farmers = {}
@@ -358,6 +377,10 @@ def cart():
             }
         farmers[item['farmer_id']]['items'].append(item)
         farmers[item['farmer_id']]['total'] += item['subtotal']
+    
+    # Additional debugging
+    app.logger.info(f"Cart data processed: {len(cart_data)} valid items")
+    app.logger.info(f"Farmers in cart: {list(farmers.keys())}")
     
     return render_template('customer/cart.html', farmers=farmers.values(), user=user)
 
@@ -386,14 +409,22 @@ def add_to_cart():
     if quantity > crop.quantity:
         return jsonify({'success': False, 'message': 'Requested quantity exceeds available stock.'})
     
-    # Initialize cart if not exists
-    if 'cart' not in session:
-        session['cart'] = []
+    # Debug before update
+    app.logger.info(f"Add to cart - Session Keys before: {list(session.keys())}")
+    app.logger.info(f"Add to cart - Session Cart before: {session.get('cart')}")
+    
+    # Get current cart from session
+    cart = session.get('cart', [])
+    
+    # If cart wasn't a list, initialize it
+    if not isinstance(cart, list):
+        cart = []
+    
+    # Convert cart items to dictionaries if they aren't already
+    cart = [dict(item) if not isinstance(item, dict) else item for item in cart]
     
     # Check if item already in cart
-    cart = session.get('cart', [])
     item_found = False
-    
     for item in cart:
         if str(item['crop_id']) == str(crop_id):
             item['quantity'] = quantity
@@ -405,16 +436,21 @@ def add_to_cart():
     
     # Explicitly update the session
     session['cart'] = cart
-    # Mark session as modified to ensure it's saved
+    
+    # Ensure session is saved immediately
     session.modified = True
     
-    # Debug output
-    print(f"Add to cart - Session Cart (after add): {session.get('cart')}")
-    print(f"Add to cart - Session Keys: {list(session.keys())}")
-    app.logger.info(f"Add to cart - Session Cart (after add): {session.get('cart')}")
-    app.logger.info(f"Add to cart - Session Keys: {list(session.keys())}")
+    # Debug after update
+    app.logger.info(f"Add to cart - Cart data after update: {cart}")
+    app.logger.info(f"Add to cart - Session Cart after storing: {session.get('cart')}")
+    app.logger.info(f"Add to cart - Session Keys after: {list(session.keys())}")
     
-    return jsonify({'success': True, 'message': 'Item added to cart.', 'cart_count': len(cart)})
+    return jsonify({
+        'success': True, 
+        'message': 'Item added to cart.',
+        'cart_count': len(cart),
+        'debug_cart': cart  # Include cart data in response for debugging
+    })
 
 @app.route('/api/cart/remove', methods=['POST'])
 @login_required
@@ -431,14 +467,33 @@ def remove_from_cart():
     if not crop_id:
         return jsonify({'success': False, 'message': 'Invalid request data.'})
     
-    # Remove item from cart
-    if 'cart' in session:
-        cart = session['cart']
-        session['cart'] = [item for item in cart if str(item['crop_id']) != str(crop_id)]
-        # Mark session as modified
-        session.modified = True
+    # Debug before update
+    app.logger.info(f"Remove from cart - Session Keys before: {list(session.keys())}")
+    app.logger.info(f"Remove from cart - Session Cart before: {session.get('cart')}")
     
-    return jsonify({'success': True, 'message': 'Item removed from cart.', 'cart_count': len(session.get('cart', []))})
+    # Get current cart from session
+    cart = session.get('cart', [])
+    
+    # If cart wasn't a list, initialize it
+    if not isinstance(cart, list):
+        cart = []
+    
+    # Filter out the item to remove
+    new_cart = [item for item in cart if str(item.get('crop_id')) != str(crop_id)]
+    
+    # Update the session
+    session['cart'] = new_cart
+    session.modified = True
+    
+    # Debug after update
+    app.logger.info(f"Remove from cart - Session Cart after update: {session.get('cart')}")
+    app.logger.info(f"Remove from cart - Cart length: {len(new_cart)}")
+    
+    return jsonify({
+        'success': True, 
+        'message': 'Item removed from cart.', 
+        'cart_count': len(new_cart)
+    })
 
 @app.route('/api/cart/update', methods=['POST'])
 @login_required
@@ -465,18 +520,44 @@ def update_cart():
     if quantity > crop.quantity:
         return jsonify({'success': False, 'message': 'Requested quantity exceeds available stock.'})
     
-    # Update quantity in cart
-    if 'cart' in session:
-        cart = session['cart']
-        for item in cart:
-            if str(item['crop_id']) == str(crop_id):
-                item['quantity'] = quantity
-                break
-        session['cart'] = cart
-        # Mark session as modified
-        session.modified = True
+    # Debug before update
+    app.logger.info(f"Update cart - Session Keys before: {list(session.keys())}")
+    app.logger.info(f"Update cart - Session Cart before: {session.get('cart')}")
     
-    return jsonify({'success': True, 'message': 'Cart updated.', 'cart_count': len(session.get('cart', []))})
+    # Get current cart from session
+    cart = session.get('cart', [])
+    
+    # If cart wasn't a list, initialize it
+    if not isinstance(cart, list):
+        cart = []
+    
+    # Convert cart items to dictionaries if they aren't already
+    cart = [dict(item) if not isinstance(item, dict) else item for item in cart]
+    
+    # Update quantity in cart
+    item_found = False
+    for item in cart:
+        if str(item.get('crop_id')) == str(crop_id):
+            item['quantity'] = quantity
+            item_found = True
+            break
+    
+    # If item not found (unlikely but possible in case of race conditions)
+    if not item_found:
+        cart.append({'crop_id': int(crop_id), 'quantity': quantity})
+    
+    # Update session
+    session['cart'] = cart
+    session.modified = True
+    
+    # Debug after update
+    app.logger.info(f"Update cart - Session Cart after update: {session.get('cart')}")
+    
+    return jsonify({
+        'success': True, 
+        'message': 'Cart updated.', 
+        'cart_count': len(cart)
+    })
 
 @app.route('/customer/checkout', methods=['GET', 'POST'])
 @login_required
@@ -491,8 +572,19 @@ def checkout():
         flash('Please complete your profile before checkout.', 'warning')
         return redirect(url_for('customer_profile'))
     
+    # Debug output
+    app.logger.info(f"Checkout - Session Keys: {list(session.keys())}")
+    app.logger.info(f"Checkout - Session Cart: {session.get('cart')}")
+    
     # Get cart from session
     cart_items = session.get('cart', [])
+    
+    # If cart wasn't a list, initialize it
+    if not isinstance(cart_items, list):
+        cart_items = []
+        session['cart'] = cart_items
+        session.modified = True
+        app.logger.warning("Checkout - Cart was not a list. Initialized empty cart.")
     
     if not cart_items:
         flash('Your cart is empty.', 'warning')
@@ -502,26 +594,42 @@ def checkout():
     farmer_orders = {}
     
     for item in cart_items:
-        crop = Crop.query.get(item['crop_id'])
-        if crop and crop.is_available:
-            farmer_id = crop.farmer_id
+        # Skip invalid items
+        if not isinstance(item, dict) or 'crop_id' not in item:
+            app.logger.warning(f"Checkout - Invalid cart item found: {item}")
+            continue
             
-            if farmer_id not in farmer_orders:
-                farmer = FarmerProfile.query.get(farmer_id)
-                farmer_orders[farmer_id] = {
-                    'farmer': farmer,
-                    'items': [],
-                    'total': 0
-                }
-            
-            item_total = crop.price * item['quantity']
-            farmer_orders[farmer_id]['items'].append({
-                'crop': crop,
-                'quantity': item['quantity'],
-                'price': crop.price,
-                'subtotal': item_total
-            })
-            farmer_orders[farmer_id]['total'] += item_total
+        try:
+            crop_id = int(item['crop_id'])
+            crop = Crop.query.get(crop_id)
+            if crop and crop.is_available:
+                farmer_id = crop.farmer_id
+                
+                if farmer_id not in farmer_orders:
+                    farmer = FarmerProfile.query.get(farmer_id)
+                    if not farmer:
+                        app.logger.warning(f"Checkout - Farmer not found for crop {crop_id}")
+                        continue
+                        
+                    farmer_orders[farmer_id] = {
+                        'farmer': farmer,
+                        'items': [],
+                        'total': 0
+                    }
+                
+                quantity = float(item['quantity'])
+                item_total = crop.price * quantity
+                farmer_orders[farmer_id]['items'].append({
+                    'crop': crop,
+                    'quantity': quantity,
+                    'price': crop.price,
+                    'subtotal': item_total
+                })
+                farmer_orders[farmer_id]['total'] += item_total
+            else:
+                app.logger.warning(f"Checkout - Crop not found or not available: {crop_id}")
+        except Exception as e:
+            app.logger.error(f"Checkout - Error processing cart item {item}: {str(e)}")
     
     if request.method == 'POST':
         # Process the order

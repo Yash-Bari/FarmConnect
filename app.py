@@ -40,9 +40,10 @@ app.config["SESSION_COOKIE_SECURE"] = False  # Set to True in production with HT
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_USE_SIGNER"] = True
+app.config["SESSION_FILE_THRESHOLD"] = 100  # Maximum number of sessions in session directory
 
-# Initialize Flask-Session
-Session(app)
+# Initialize Flask-Session before CSRF
+session_interface = Session(app)
 
 # Configure database
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///farmconnect.db")
