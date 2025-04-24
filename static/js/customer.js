@@ -35,13 +35,13 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.json())
             .then(data => {
-                // Enhanced debug logs
-                console.log('Add to cart response:', data);
+                // Enhanced debugging
+                console.log('Cart response:', data);
                 console.log('Cart count:', data.cart_count);
-                console.log('Debug cart data:', data.debug_cart);
+                console.log('Cart items:', data.cart_items);
                 
                 if (data.success) {
-                    // Show feedback with more details
+                    // Show detailed feedback
                     const successMsg = `${data.message} (${data.cart_count} items in cart)`;
                     showToast(successMsg, 'success');
                     
@@ -52,11 +52,23 @@ document.addEventListener('DOMContentLoaded', function() {
                         cartCountBadge.style.display = data.cart_count > 0 ? 'inline-block' : 'none';
                     }
                     
-                    // Add a small delay before redirect to ensure session is saved
-                    setTimeout(() => {
-                        // Optional - uncomment to auto-redirect to cart
-                        // window.location.href = '/customer/cart';
-                    }, 500);
+                    // Add a "View Cart" button to the toast
+                    const viewCartBtn = document.createElement('button');
+                    viewCartBtn.className = 'btn btn-sm btn-primary mt-2';
+                    viewCartBtn.innerText = 'View Cart';
+                    viewCartBtn.onclick = () => window.location.href = '/customer/cart';
+                    
+                    // Add the button to the last toast
+                    const lastToast = document.querySelector('.toast:last-child .toast-body');
+                    if (lastToast) {
+                        lastToast.appendChild(document.createElement('br'));
+                        lastToast.appendChild(viewCartBtn);
+                    }
+                    
+                    // Optional: Auto-redirect after delay
+                    // setTimeout(() => {
+                    //     window.location.href = '/customer/cart';
+                    // }, 2000);
                 } else {
                     showToast(data.message, 'danger');
                 }

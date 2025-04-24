@@ -435,49 +435,66 @@ def add_to_cart():
         return jsonify({'success': False, 'message': 'Requested quantity exceeds available stock.'})
     
     # Debug session before changes
-    app.logger.info(f"Add to cart - Session before: {dict(session)}")
+    app.logger.info("=== ADD TO CART - START ===")
+    app.logger.info(f"Session keys before: {list(session.keys())}")
+    app.logger.info(f"Cart before: {session.get('cart')}")
     
-    # Initialize cart if it doesn't exist
+    # Ensure cart is a list in session
     if 'cart' not in session:
         session['cart'] = []
+        session.modified = True
+        app.logger.info("Cart was missing in session, initialized new cart")
     
-    # Get cart from session and ensure it's a list
-    cart = session['cart']
-    if not isinstance(cart, list):
-        cart = []
+    # Get current cart and ensure it's a list
+    if not isinstance(session['cart'], list):
+        app.logger.warning(f"Cart was not a list, it was: {type(session['cart'])}")
+        session['cart'] = []
+        session.modified = True
     
-    # Find if crop already in cart
-    item_found = False
-    for item in cart:
-        if isinstance(item, dict) and str(item.get('crop_id')) == str(crop_id):
+    app.logger.info(f"Current cart: {session['cart']}")
+    
+    # Check if item already in cart
+    cart_updated = False
+    for item in session['cart']:
+        if isinstance(item, dict) and item.get('crop_id') == crop_id:
             item['quantity'] = quantity
-            item_found = True
+            cart_updated = True
+            app.logger.info(f"Updated existing item in cart: {item}")
             break
     
-    # Add new item if not found
-    if not item_found:
-        cart.append({
+    # If not found, add new item
+    if not cart_updated:
+        new_item = {
             'crop_id': crop_id,
             'quantity': quantity,
             'added_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        })
+        }
+        session['cart'].append(new_item)
+        app.logger.info(f"Added new item to cart: {new_item}")
     
-    # Update session
-    session['cart'] = cart
+    # Ensure the session is saved
+    session.permanent = True
     session.modified = True
     
     # Debug session after changes
-    app.logger.info(f"Add to cart - Cart after update: {session['cart']}")
-    app.logger.info(f"Add to cart - Session after: {dict(session)}")
+    app.logger.info(f"Session after modification: {dict(session)}")
+    app.logger.info(f"Cart after: {session.get('cart')}")
+    app.logger.info("=== ADD TO CART - END ===")
     
     # Get farmer info for response
     farmer = FarmerProfile.query.get(crop.farmer_id)
     
+    # Prepare cart summary for client
+    cart_items = session.get('cart', [])
+    cart_total = sum(item.get('quantity', 0) for item in cart_items if isinstance(item, dict))
+    
     return jsonify({
         'success': True, 
         'message': f'{crop.name} added to cart.',
-        'cart_count': len(cart),
-        'item': {
+        'cart_count': len(cart_items),
+        'cart_items': cart_items,
+        'cart_total': cart_total,
+        'item_details': {
             'crop_id': crop_id,
             'name': crop.name,
             'price': crop.price,
@@ -491,56 +508,103 @@ def add_to_cart():
 @login_required
 @csrf.exempt
 def remove_from_cart():
+    """Remove a crop from the shopping cart"""
     user = current_user
     
     if user.user_type != 'customer':
         return jsonify({'success': False, 'message': 'Unauthorized access.'})
     
     data = request.json
-    crop_id = data.get('crop_id')
+    crop_id = int(data.get('crop_id'))
     
     if not crop_id:
         return jsonify({'success': False, 'message': 'Invalid request data.'})
     
-    # Debug before update
-    app.logger.info(f"Remove from cart - Session Keys before: {list(session.keys())}")
-    app.logger.info(f"Remove from cart - Session Cart before: {session.get('cart')}")
+    # Debug session before changes
+    app.logger.info("=== REMOVE FROM CART - START ===")
+    app.logger.info(f"Session keys before: {list(session.keys())}")
+    app.logger.info(f"Cart before: {session.get('cart')}")
     
-    # Get current cart from session
-    cart = session.get('cart', [])
+    # Ensure cart exists in session
+    if 'cart' not in session:
+        session['cart'] = []
+        session.modified = True
+        app.logger.warning("Cart was missing in session, initialized empty cart")
+        return jsonify({
+            'success': True, 
+            'message': 'Cart was already empty.',
+            'cart_count': 0
+        })
     
-    # If cart wasn't a list, initialize it
-    if not isinstance(cart, list):
-        cart = []
+    # Ensure cart is a list
+    if not isinstance(session['cart'], list):
+        app.logger.warning(f"Cart was not a list, it was: {type(session['cart'])}")
+        session['cart'] = []
+        session.modified = True
+        return jsonify({
+            'success': True,
+            'message': 'Reset invalid cart format.',
+            'cart_count': 0
+        })
     
-    # Filter out the item to remove
-    new_cart = [item for item in cart if str(item.get('crop_id')) != str(crop_id)]
+    # Find and remove the item from cart
+    old_cart = session['cart']
+    try:
+        # Create new cart without the item to remove
+        new_cart = [item for item in old_cart if int(item.get('crop_id', 0)) != crop_id]
+        
+        # Check if any item was actually removed
+        if len(new_cart) == len(old_cart):
+            app.logger.warning(f"Item with crop_id {crop_id} not found in cart")
+            
+        # Update the session
+        session['cart'] = new_cart
+        session.permanent = True
+        session.modified = True
+        
+        app.logger.info(f"Removed item with crop_id {crop_id}")
+        app.logger.info(f"New cart: {new_cart}")
+    except Exception as e:
+        app.logger.error(f"Error removing item from cart: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': 'Error removing item from cart.',
+            'error': str(e)
+        })
     
-    # Update the session
-    session['cart'] = new_cart
-    session.modified = True
+    # Get crop info for response if available
+    crop_name = "Item"
+    try:
+        crop = Crop.query.get(crop_id)
+        if crop:
+            crop_name = crop.name
+    except:
+        pass
     
-    # Debug after update
-    app.logger.info(f"Remove from cart - Session Cart after update: {session.get('cart')}")
-    app.logger.info(f"Remove from cart - Cart length: {len(new_cart)}")
+    # Debug session after changes
+    app.logger.info(f"Session after: {dict(session)}")
+    app.logger.info(f"Cart after: {session.get('cart')}")
+    app.logger.info("=== REMOVE FROM CART - END ===")
     
     return jsonify({
         'success': True, 
-        'message': 'Item removed from cart.', 
-        'cart_count': len(new_cart)
+        'message': f'{crop_name} removed from cart.',
+        'cart_count': len(new_cart),
+        'cart_items': new_cart
     })
 
 @app.route('/api/cart/update', methods=['POST'])
 @login_required
 @csrf.exempt
 def update_cart():
+    """Update a crop's quantity in the shopping cart"""
     user = current_user
     
     if user.user_type != 'customer':
         return jsonify({'success': False, 'message': 'Unauthorized access.'})
     
     data = request.json
-    crop_id = data.get('crop_id')
+    crop_id = int(data.get('crop_id'))
     quantity = float(data.get('quantity', 1))
     
     if not crop_id or not quantity:
@@ -553,45 +617,69 @@ def update_cart():
     
     # Check quantity
     if quantity > crop.quantity:
-        return jsonify({'success': False, 'message': 'Requested quantity exceeds available stock.'})
+        return jsonify({
+            'success': False, 
+            'message': f'Requested quantity exceeds available stock ({crop.quantity} {crop.unit}).'
+        })
     
-    # Debug before update
-    app.logger.info(f"Update cart - Session Keys before: {list(session.keys())}")
-    app.logger.info(f"Update cart - Session Cart before: {session.get('cart')}")
+    # Debug session before changes
+    app.logger.info("=== UPDATE CART - START ===")
+    app.logger.info(f"Session keys before: {list(session.keys())}")
+    app.logger.info(f"Cart before: {session.get('cart')}")
     
-    # Get current cart from session
-    cart = session.get('cart', [])
+    # Ensure cart exists in session
+    if 'cart' not in session:
+        session['cart'] = []
+        session.modified = True
+        app.logger.warning("Cart was missing in session, initialized empty cart")
     
-    # If cart wasn't a list, initialize it
-    if not isinstance(cart, list):
-        cart = []
-    
-    # Convert cart items to dictionaries if they aren't already
-    cart = [dict(item) if not isinstance(item, dict) else item for item in cart]
+    # Ensure cart is a list
+    if not isinstance(session['cart'], list):
+        app.logger.warning(f"Cart was not a list, it was: {type(session['cart'])}")
+        session['cart'] = []
+        session.modified = True
     
     # Update quantity in cart
     item_found = False
-    for item in cart:
-        if str(item.get('crop_id')) == str(crop_id):
+    for item in session['cart']:
+        if isinstance(item, dict) and int(item.get('crop_id', 0)) == crop_id:
             item['quantity'] = quantity
+            item['updated_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             item_found = True
+            app.logger.info(f"Updated quantity for crop_id {crop_id} to {quantity}")
             break
     
-    # If item not found (unlikely but possible in case of race conditions)
+    # If item not found, add it to cart
     if not item_found:
-        cart.append({'crop_id': int(crop_id), 'quantity': quantity})
+        new_item = {
+            'crop_id': crop_id,
+            'quantity': quantity,
+            'added_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        session['cart'].append(new_item)
+        app.logger.info(f"Added new item to cart: {new_item}")
     
-    # Update session
-    session['cart'] = cart
+    # Ensure the session is saved
+    session.permanent = True
     session.modified = True
     
-    # Debug after update
-    app.logger.info(f"Update cart - Session Cart after update: {session.get('cart')}")
+    # Debug session after changes
+    app.logger.info(f"Session after: {dict(session)}")
+    app.logger.info(f"Cart after: {session.get('cart')}")
+    app.logger.info("=== UPDATE CART - END ===")
     
     return jsonify({
         'success': True, 
-        'message': 'Cart updated.', 
-        'cart_count': len(cart)
+        'message': f'{crop.name} quantity updated in cart.',
+        'cart_count': len(session['cart']),
+        'cart_items': session['cart'],
+        'item_details': {
+            'crop_id': crop_id,
+            'name': crop.name,
+            'price': crop.price,
+            'unit': crop.unit,
+            'quantity': quantity
+        }
     })
 
 @app.route('/customer/checkout', methods=['GET', 'POST'])
@@ -801,20 +889,26 @@ def test_session():
     """Test route to verify session functionality"""
     # Set a test value in session
     session['test_value'] = f"Test at {datetime.utcnow()}"
+    session.modified = True
     
     # Create a test cart if none exists
     if 'cart' not in session:
         session['cart'] = []
+        session.modified = True
     
-    test_cart = session.get('cart', [])
-    test_cart.append({
+    # Force cart to be a list
+    if not isinstance(session['cart'], list):
+        session['cart'] = []
+        session.modified = True
+    
+    # Add test item to cart
+    session['cart'].append({
         'crop_id': 1,
         'quantity': 2.5,
         'test_time': datetime.utcnow().strftime('%H:%M:%S')
     })
     
-    # Update session
-    session['cart'] = test_cart
+    # Ensure session is saved
     session.modified = True
     
     # Return session info
@@ -824,6 +918,53 @@ def test_session():
         'cart': session.get('cart'),
         'user_id': session.get('_user_id'),
         'message': 'Session test complete - check if data persists on refresh'
+    })
+
+@app.route('/test/cart')
+@login_required
+def test_cart():
+    """Advanced test route to debug cart operations"""
+    user = current_user
+    
+    # Capture session state before
+    session_before = dict(session)
+    cart_before = session.get('cart', None)
+    
+    # Initialize cart if not present
+    if 'cart' not in session:
+        session['cart'] = []
+        session.modified = True
+    
+    # Add test item to cart
+    test_item = {
+        'crop_id': 1, 
+        'quantity': 1.5,
+        'timestamp': datetime.now().strftime('%H:%M:%S')
+    }
+    
+    # Add to cart and mark session modified
+    session['cart'].append(test_item)
+    session.modified = True
+    
+    # Force permanent session
+    session.permanent = True
+    
+    # Get latest session state
+    cart_after = session.get('cart')
+    
+    app.logger.info(f"Cart before: {cart_before}")
+    app.logger.info(f"Cart after: {cart_after}")
+    
+    # Return detailed debug info
+    return jsonify({
+        'message': 'Cart test complete',
+        'session_keys_before': list(session_before.keys()) if session_before else [],
+        'session_keys_after': list(session.keys()),
+        'cart_before': cart_before,
+        'cart_after': cart_after,
+        'test_item_added': test_item,
+        'user_id': user.id,
+        'user_email': user.email
     })
 
 # Notification routes
