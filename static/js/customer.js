@@ -146,7 +146,8 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('/api/cart/remove', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
             },
             body: JSON.stringify({
                 crop_id: cropId

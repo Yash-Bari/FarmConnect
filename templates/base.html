@@ -70,7 +70,11 @@
                             <li class="nav-item position-relative me-3">
                                 <a class="nav-link {% if '/customer/cart' in request.path %}active{% endif %}" href="{{ url_for('cart') }}">
                                     <i class="bi bi-cart3"></i> Cart
-                                    <span class="cart-count" style="display: none;">0</span>
+                                    {% if session.cart and session.cart|length > 0 %}
+                                        <span class="cart-count" style="display: inline-block;">{{ session.cart|length }}</span>
+                                    {% else %}
+                                        <span class="cart-count" style="display: none;">0</span>
+                                    {% endif %}
                                 </a>
                             </li>
                         {% endif %}

@@ -385,19 +385,22 @@ def add_to_cart():
         session['cart'] = []
     
     # Check if item already in cart
-    cart = session['cart']
+    cart = session.get('cart', [])
     item_found = False
     
     for item in cart:
-        if item['crop_id'] == crop_id:
+        if str(item['crop_id']) == str(crop_id):
             item['quantity'] = quantity
             item_found = True
             break
     
     if not item_found:
-        cart.append({'crop_id': crop_id, 'quantity': quantity})
+        cart.append({'crop_id': int(crop_id), 'quantity': quantity})
     
+    # Explicitly update the session
     session['cart'] = cart
+    # Mark session as modified to ensure it's saved
+    session.modified = True
     
     return jsonify({'success': True, 'message': 'Item added to cart.', 'cart_count': len(cart)})
 
@@ -419,7 +422,9 @@ def remove_from_cart():
     # Remove item from cart
     if 'cart' in session:
         cart = session['cart']
-        session['cart'] = [item for item in cart if item['crop_id'] != crop_id]
+        session['cart'] = [item for item in cart if str(item['crop_id']) != str(crop_id)]
+        # Mark session as modified
+        session.modified = True
     
     return jsonify({'success': True, 'message': 'Item removed from cart.', 'cart_count': len(session.get('cart', []))})
 
@@ -452,10 +457,12 @@ def update_cart():
     if 'cart' in session:
         cart = session['cart']
         for item in cart:
-            if item['crop_id'] == crop_id:
+            if str(item['crop_id']) == str(crop_id):
                 item['quantity'] = quantity
                 break
         session['cart'] = cart
+        # Mark session as modified
+        session.modified = True
     
     return jsonify({'success': True, 'message': 'Cart updated.', 'cart_count': len(session.get('cart', []))})
 
