@@ -286,9 +286,8 @@ def marketplace():
     # Get all categories for filter dropdown
     categories = [c[0] for c in db.session.query(Crop.category).distinct()]
     
-    # Check if user is logged in
-    user_id = get_jwt_identity() if request.headers.get('Authorization') else None
-    user = User.query.get(user_id) if user_id else None
+    # Get current user for template
+    user = current_user if current_user.is_authenticated else None
     
     return render_template('customer/marketplace.html', 
                           crops=crops, 
@@ -303,17 +302,15 @@ def crop_detail(crop_id):
     crop = Crop.query.get_or_404(crop_id)
     farmer = FarmerProfile.query.get(crop.farmer_id)
     
-    # Check if user is logged in
-    user_id = get_jwt_identity() if request.headers.get('Authorization') else None
-    user = User.query.get(user_id) if user_id else None
+    # Get current user for template
+    user = current_user if current_user.is_authenticated else None
     
     return render_template('customer/crop_detail.html', crop=crop, farmer=farmer, user=user)
 
 @app.route('/customer/cart')
-@jwt_required()
+@login_required
 def cart():
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = current_user
     
     if not user or user.user_type != 'customer':
         flash('Unauthorized access.', 'danger')
