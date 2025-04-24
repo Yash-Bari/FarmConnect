@@ -1,5 +1,51 @@
 // Authentication related JavaScript for FarmConnect
 
+// Function to show toast notifications
+function showToast(message, type = 'success') {
+    // Check if toast container exists, if not create it
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        document.body.appendChild(toastContainer);
+    }
+    
+    // Create toast element
+    const toastId = 'toast-' + Date.now();
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+    toast.id = toastId;
+    
+    // Create toast content
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+    
+    // Add toast to container
+    toastContainer.appendChild(toast);
+    
+    // Initialize and show the toast
+    const bsToast = new bootstrap.Toast(toast, {
+        autohide: true,
+        delay: 5000
+    });
+    bsToast.show();
+    
+    // Remove toast after it's hidden
+    toast.addEventListener('hidden.bs.toast', function() {
+        toast.remove();
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Handle login form submission
     const loginForm = document.getElementById('login-form');
@@ -17,7 +63,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Submit form normally (server-side handling)
-            loginForm.submit();
+            document.getElementById('login-form').setAttribute('novalidate', '');
+            document.getElementById('login-form').submit();
         });
     }
     
@@ -56,7 +103,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Submit form normally (server-side handling)
-            registerForm.submit();
+            document.getElementById('register-form').setAttribute('novalidate', '');
+            document.getElementById('register-form').submit();
         });
     }
     
