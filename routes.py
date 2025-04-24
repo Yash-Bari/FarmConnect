@@ -243,10 +243,14 @@ def customer_dashboard():
     # Get recent notifications
     notifications = Notification.query.filter_by(user_id=user.id, is_read=False).order_by(Notification.created_at.desc()).limit(5).all()
     
+    # Get featured crops for dashboard
+    featured_crops = Crop.query.filter_by(is_available=True).order_by(Crop.created_at.desc()).limit(6).all()
+    
     return render_template('customer/dashboard.html', 
                           user=user,
                           recent_orders=recent_orders,
-                          notifications=notifications)
+                          notifications=notifications,
+                          featured_crops=featured_crops)
 
 @app.route('/marketplace')
 def marketplace():
