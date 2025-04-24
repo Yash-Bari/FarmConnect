@@ -1,5 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify, abort, session
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from app import app, db
 from models import User, FarmerProfile, CustomerProfile, Crop, Order, OrderItem, Payment, Notification
@@ -19,10 +20,9 @@ def index():
 
 # Farmer routes
 @app.route('/farmer/dashboard')
-@jwt_required()
+@login_required
 def farmer_dashboard():
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = current_user
     
     if not user or user.user_type != 'farmer':
         flash('Unauthorized access.', 'danger')
@@ -232,10 +232,9 @@ def update_order_status(order_id):
 
 # Customer routes
 @app.route('/customer/dashboard')
-@jwt_required()
+@login_required
 def customer_dashboard():
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = current_user
     
     if not user or user.user_type != 'customer':
         flash('Unauthorized access.', 'danger')

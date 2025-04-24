@@ -73,6 +73,9 @@ def register():
         # Set JWT token in session
         session['token'] = access_token
         
+        # Login with Flask-Login
+        login_user(user)
+        
         flash('Registration successful! Please complete your profile.', 'success')
         
         # Redirect based on user type
@@ -85,16 +88,17 @@ def register():
 
 @app.route('/logout')
 def logout():
+    # Logout with Flask-Login
+    logout_user()
     # Clear session
     session.clear()
     flash('You have been logged out.', 'info')
     return redirect(url_for('index'))
 
 @app.route('/farmer/profile', methods=['GET', 'POST'])
-@jwt_required()
+@login_required
 def farmer_profile():
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = current_user
     
     if not user or user.user_type != 'farmer':
         flash('Unauthorized access.', 'danger')
@@ -143,10 +147,9 @@ def farmer_profile():
     return render_template('auth/profile.html', form=form, user=user, user_type='farmer')
 
 @app.route('/customer/profile', methods=['GET', 'POST'])
-@jwt_required()
+@login_required
 def customer_profile():
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = current_user
     
     if not user or user.user_type != 'customer':
         flash('Unauthorized access.', 'danger')
