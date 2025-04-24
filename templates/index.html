@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+
+{% block title %}FarmConnect - Direct from Farm to Table{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero">
+    <div class="container">
+        <h1>Direct from Farm to Table</h1>
+        <p>Connect with local farmers and get fresh produce directly to your doorstep. No middlemen, just fresh food and fair prices.</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ url_for('marketplace') }}" class="btn btn-accent btn-lg">Browse Crops</a>
+            <a href="{{ url_for('register') }}" class="btn btn-outline-light btn-lg">Join Now</a>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- How It Works Section -->
+    <section class="mb-5">
+        <h2 class="text-center mb-4">How It Works</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="bi bi-person-plus fs-1 text-primary"></i>
+                        </div>
+                        <h5 class="card-title">Step 1: Register</h5>
+                        <p class="card-text">Sign up as a farmer to sell your produce or as a customer to buy fresh crops.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="bi bi-cart-plus fs-1 text-primary"></i>
+                        </div>
+                        <h5 class="card-title">Step 2: Buy or Sell</h5>
+                        <p class="card-text">Farmers list their produce, while customers browse and purchase what they need.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="bi bi-truck fs-1 text-primary"></i>
+                        </div>
+                        <h5 class="card-title">Step 3: Delivery</h5>
+                        <p class="card-text">Track your order status and receive farm-fresh produce directly at your doorstep.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Crops Section -->
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Featured Crops</h2>
+            <a href="{{ url_for('marketplace') }}" class="btn btn-outline-primary">View All</a>
+        </div>
+        
+        <div class="row g-4">
+            {% if featured_crops %}
+                {% for crop in featured_crops %}
+                    <div class="col-md-4 col-lg-4">
+                        <div class="card crop-card">
+                            {% if crop.images %}
+                                {% set first_image = crop.images.split(',')[0] %}
+                                <img src="{{ url_for('static', filename='uploads/' + first_image) }}" class="card-img-top" alt="{{ crop.name }}">
+                            {% else %}
+                                <img src="https://images.unsplash.com/photo-1539811463576-b503d4085592" class="card-img-top" alt="{{ crop.name }}">
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ crop.name }}</h5>
+                                <p class="crop-meta">{{ crop.category }} | {{ crop.quantity }} {{ crop.unit }}</p>
+                                <p class="crop-price">₹{{ crop.price }}/{{ crop.unit }}</p>
+                                <div class="d-flex justify-content-between align-items-center mt-auto">
+                                    <span class="text-muted small">
+                                        {% if crop.farmer.farm_name %}
+                                            By {{ crop.farmer.farm_name }}
+                                        {% endif %}
+                                    </span>
+                                    <a href="{{ url_for('crop_detail', crop_id=crop.id) }}" class="btn btn-sm btn-primary">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        No crops are currently available. Please check back soon!
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="mb-5">
+        <h2 class="text-center mb-4">Why Choose FarmConnect?</h2>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="row g-0">
+                        <div class="col-md-4">
+                            <img src="https://images.unsplash.com/photo-1506358332807-7a25096ebd09" class="img-fluid rounded-start h-100" alt="Farmer in field" style="object-fit: cover;">
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <h5 class="card-title">For Farmers</h5>
+                                <ul class="mb-0">
+                                    <li>Direct access to customers</li>
+                                    <li>Set your own prices</li>
+                                    <li>Reduce food waste</li>
+                                    <li>Simple order management</li>
+                                    <li>Grow your farm business</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="row g-0">
+                        <div class="col-md-4">
+                            <img src="https://images.unsplash.com/photo-1562437243-4117943e59b8" class="img-fluid rounded-start h-100" alt="Fresh vegetables" style="object-fit: cover;">
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <h5 class="card-title">For Customers</h5>
+                                <ul class="mb-0">
+                                    <li>Farm-fresh produce</li>
+                                    <li>Support local farmers</li>
+                                    <li>Know your food source</li>
+                                    <li>Better prices without middlemen</li>
+                                    <li>Convenient doorstep delivery</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="mb-5">
+        <h2 class="text-center mb-4">What Our Users Say</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="mb-3 text-warning">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <p class="card-text">"FarmConnect has transformed how I sell my crops. I now have direct connections with customers who appreciate quality produce."</p>
+                        <div class="d-flex align-items-center mt-3">
+                            <img src="https://images.unsplash.com/photo-1504224357642-c87eacea1da4" class="rounded-circle me-3" width="50" height="50" alt="Farmer testimonial" style="object-fit: cover;">
+                            <div>
+                                <h6 class="mb-0">Ravi Kumar</h6>
+                                <p class="text-muted mb-0 small">Organic Farmer, Punjab</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="mb-3 text-warning">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <p class="card-text">"I love getting fresh vegetables delivered directly from local farms. The quality is amazing and I feel good supporting farmers directly."</p>
+                        <div class="d-flex align-items-center mt-3">
+                            <img src="https://images.unsplash.com/photo-1717881142058-6b55b77c8e05" class="rounded-circle me-3" width="50" height="50" alt="Customer testimonial" style="object-fit: cover;">
+                            <div>
+                                <h6 class="mb-0">Priya Sharma</h6>
+                                <p class="text-muted mb-0 small">Customer, Mumbai</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="mb-3 text-warning">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-half"></i>
+                        </div>
+                        <p class="card-text">"FarmConnect has helped my small farm reach more customers in the city. My income has increased and I can now focus on growing quality crops."</p>
+                        <div class="d-flex align-items-center mt-3">
+                            <img src="https://images.unsplash.com/photo-1717881136326-389b1daf102f" class="rounded-circle me-3" width="50" height="50" alt="Farmer testimonial" style="object-fit: cover;">
+                            <div>
+                                <h6 class="mb-0">Anand Patel</h6>
+                                <p class="text-muted mb-0 small">Fruit Grower, Karnataka</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Join Now CTA -->
+    <section class="text-center py-5 mb-5 bg-light rounded">
+        <h2 class="mb-3">Ready to Get Started?</h2>
+        <p class="mb-4">Join our growing community of farmers and customers today.</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ url_for('register') }}?type=farmer" class="btn btn-primary btn-lg">Join as Farmer</a>
+            <a href="{{ url_for('register') }}?type=customer" class="btn btn-success btn-lg">Join as Customer</a>
+        </div>
+    </section>
+</div>
+{% endblock %}

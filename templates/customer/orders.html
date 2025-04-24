@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}My Orders - FarmConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Your Orders</h1>
+            <p class="text-muted">Track and manage your orders</p>
+        </div>
+        <div>
+            <a href="{{ url_for('marketplace') }}" class="btn btn-primary">
+                <i class="bi bi-shop"></i> Continue Shopping
+            </a>
+        </div>
+    </div>
+    
+    {% if orders %}
+        <div class="row g-4">
+            {% for order in orders %}
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-transparent">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Order #{{ order.id }}</h5>
+                                <span class="badge 
+                                    {% if order.status == 'pending' %}bg-warning
+                                    {% elif order.status == 'accepted' %}bg-primary
+                                    {% elif order.status == 'processing' %}bg-info
+                                    {% elif order.status == 'shipped' %}bg-secondary
+                                    {% elif order.status == 'delivered' %}bg-success
+                                    {% elif order.status == 'rejected' %}bg-danger
+                                    {% endif %}">
+                                    {{ order.status.capitalize() }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <p class="mb-1"><strong>Ordered From:</strong> {{ order.farmer.farm_name }}</p>
+                                <p class="mb-1"><strong>Order Date:</strong> {{ order.order_date.strftime('%b %d, %Y') }}</p>
+                                <p class="mb-1"><strong>Total Amount:</strong> ₹{{ order.total_amount }}</p>
+                                {% if order.estimated_delivery %}
+                                    <p class="mb-1"><strong>Estimated Delivery:</strong> {{ order.estimated_delivery.strftime('%b %d, %Y') }}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Items Ordered:</h6>
+                                <div class="list-group">
+                                    {% for item in order.items %}
+                                        <div class="list-group-item">
+                                            <div class="d-flex justify-content-between">
+                                                <div>
+                                                    <p class="mb-0 fw-bold">{{ item.crop.name }}</p>
+                                                    <small>{{ item.quantity }} {{ item.crop.unit }} x ₹{{ item.price_per_unit }}/{{ item.crop.unit }}</small>
+                                                </div>
+                                                <div>
+                                                    <p class="mb-0">₹{{ item.subtotal }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Delivery Address:</h6>
+                                <p class="mb-0">{{ order.delivery_address }}</p>
+                            </div>
+                            
+                            <!-- Payment Status -->
+                            <div class="mb-3">
+                                <h6>Payment Status:</h6>
+                                {% if order.payment %}
+                                    {% if order.payment.status == 'pending' %}
+                                        <div class="alert alert-warning mb-3">
+                                            <i class="bi bi-exclamation-triangle me-2"></i> Payment verification pending
+                                        </div>
+                                    {% elif order.payment.status == 'verified' %}
+                                        <div class="alert alert-success mb-3">
+                                            <i class="bi bi-check-circle me-2"></i> Payment verified
+                                        </div>
+                                    {% else %}
+                                        <div class="alert alert-danger mb-3">
+                                            <i class="bi bi-x-circle me-2"></i> Payment failed
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="alert alert-danger mb-3">
+                                        <i class="bi bi-x-circle me-2"></i> Payment not made
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <div class="d-flex justify-content-between">
+                                {% if not order.payment or order.payment.status == 'pending' %}
+                                    <a href="{{ url_for('order_payment', order_id=order.id) }}" class="btn btn-primary">
+                                        <i class="bi bi-credit-card"></i> Make Payment
+                                    </a>
+                                {% else %}
+                                    <button class="btn btn-outline-secondary" disabled>
+                                        <i class="bi bi-check-circle"></i> Payment Made
+                                    </button>
+                                {% endif %}
+                                
+                                <!-- Contact Farmer Button -->
+                                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#contactFarmerModal{{ order.id }}">
+                                    <i class="bi bi-chat"></i> Contact Farmer
+                                </button>
+                                
+                                <!-- Contact Farmer Modal -->
+                                <div class="modal fade" id="contactFarmerModal{{ order.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Contact {{ order.farmer.farm_name }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p><strong>Farm Name:</strong> {{ order.farmer.farm_name }}</p>
+                                                <p><strong>Farmer:</strong> {{ order.farmer.user.full_name }}</p>
+                                                <p><strong>Phone:</strong> {{ order.farmer.user.phone or 'Not provided' }}</p>
+                                                <p><strong>Email:</strong> {{ order.farmer.user.email }}</p>
+                                                <hr>
+                                                <p>Please mention your Order #{{ order.id }} when contacting the farmer.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card py-5">
+            <div class="card-body text-center">
+                <i class="bi bi-inbox fs-1 text-muted mb-3"></i>
+                <h3>No Orders Yet</h3>
+                <p class="mb-4">You haven't placed any orders yet. Start by exploring our marketplace.</p>
+                <a href="{{ url_for('marketplace') }}" class="btn btn-primary">
+                    <i class="bi bi-shop"></i> Browse Marketplace
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Shopping Cart - FarmConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Your Shopping Cart</h1>
+    
+    {% if farmers %}
+        <div class="row">
+            <div class="col-lg-8">
+                {% for farmer in farmers %}
+                    <div class="card mb-4">
+                        <div class="card-header bg-transparent">
+                            <h5 class="mb-0">{{ farmer.farmer_name }}</h5>
+                        </div>
+                        <div class="card-body">
+                            {% for item in farmer.items %}
+                                <div class="cart-item" id="cart-item-{{ item.crop_id }}">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-2 col-3">
+                                            <img src="https://images.unsplash.com/photo-1539811463576-b503d4085592" 
+                                                 class="cart-item-img" 
+                                                 alt="{{ item.name }}">
+                                        </div>
+                                        <div class="col-md-4 col-9">
+                                            <h5 class="cart-item-name">{{ item.name }}</h5>
+                                            <p class="cart-item-price mb-0">₹{{ item.price }}/{{ item.unit }}</p>
+                                        </div>
+                                        <div class="col-md-3 col-6 mt-3 mt-md-0">
+                                            <div class="input-group">
+                                                <input type="number" 
+                                                       class="form-control cart-quantity-input" 
+                                                       value="{{ item.quantity }}" 
+                                                       min="0.1" 
+                                                       step="0.1" 
+                                                       data-crop-id="{{ item.crop_id }}">
+                                                <span class="input-group-text">{{ item.unit }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-4 mt-3 mt-md-0 text-end text-md-center">
+                                            <h6>₹{{ '%.2f'|format(item.subtotal) }}</h6>
+                                        </div>
+                                        <div class="col-md-1 col-2 mt-3 mt-md-0 text-end">
+                                            <button class="btn btn-sm btn-outline-danger remove-cart-item" data-crop-id="{{ item.crop_id }}">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="card-footer bg-transparent d-flex justify-content-between">
+                            <span class="fw-bold">Subtotal ({{ farmer.items|length }} items):</span>
+                            <span class="fw-bold">₹{{ '%.2f'|format(farmer.total) }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header bg-transparent">
+                        <h5 class="mb-0">Order Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        {% set total = 0 %}
+                        {% for farmer in farmers %}
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>{{ farmer.farmer_name }}:</span>
+                                <span>₹{{ '%.2f'|format(farmer.total) }}</span>
+                            </div>
+                            {% set total = total + farmer.total %}
+                        {% endfor %}
+                        
+                        <hr>
+                        
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="fw-bold">Total:</span>
+                            <span class="fw-bold">₹{{ '%.2f'|format(total) }}</span>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <a href="{{ url_for('checkout') }}" class="btn btn-primary btn-lg">Proceed to Checkout</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Note</h5>
+                        <p class="card-text">Orders are grouped by farmer. You'll need to make separate payments for each farmer's order during checkout.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="card py-5">
+            <div class="card-body text-center empty-cart-message">
+                <i class="bi bi-cart-x fs-1 text-muted mb-3"></i>
+                <h3>Your cart is empty</h3>
+                <p class="mb-4">Looks like you haven't added any crops to your cart yet.</p>
+                <a href="{{ url_for('marketplace') }}" class="btn btn-primary">
+                    <i class="bi bi-shop"></i> Browse Marketplace
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

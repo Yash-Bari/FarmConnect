@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block title %}Marketplace - FarmConnect{% endblock %}
+
+{% block content %}
+<!-- Marketplace Header -->
+<div class="bg-light py-4 mb-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1 class="mb-2">Farm Fresh Marketplace</h1>
+                <p class="mb-0">Browse and buy fresh crops directly from farmers</p>
+            </div>
+            <div class="col-md-6">
+                <form id="search-form" method="GET" action="{{ url_for('marketplace') }}">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="search-input" name="search" value="{{ search }}" placeholder="Search for crops...">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Filters Section -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <form id="filter-form" method="GET" action="{{ url_for('marketplace') }}">
+                        <div class="row g-3">
+                            <div class="col-md-5">
+                                <label for="category-filter" class="form-label">Category</label>
+                                <select id="category-filter" name="category" class="form-select">
+                                    <option value="all" {% if category == 'all' %}selected{% endif %}>All Categories</option>
+                                    {% for cat in categories %}
+                                        <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat.capitalize() }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <label for="sort-filter" class="form-label">Sort By</label>
+                                <select id="sort-filter" name="sort_by" class="form-select">
+                                    <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>Newest First</option>
+                                    <option value="price_low" {% if sort_by == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                                    <option value="price_high" {% if sort_by == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                            </div>
+                            <!-- Hidden input to preserve search term when applying filters -->
+                            {% if search %}
+                                <input type="hidden" name="search" value="{{ search }}">
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Crops Grid -->
+    <div class="row g-4">
+        {% if search %}
+            <div class="col-12 mb-3">
+                <h5>Search results for: "{{ search }}"</h5>
+                <a href="{{ url_for('marketplace') }}" class="text-decoration-none">Clear search</a>
+            </div>
+        {% endif %}
+        
+        {% if crops %}
+            {% for crop in crops %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card crop-card h-100">
+                        {% if crop.images %}
+                            {% set first_image = crop.images.split(',')[0] %}
+                            <img src="{{ url_for('static', filename='uploads/' + first_image) }}" class="card-img-top" alt="{{ crop.name }}">
+                        {% else %}
+                            <img src="https://images.unsplash.com/photo-1539811463576-b503d4085592" class="card-img-top" alt="{{ crop.name }}">
+                        {% endif %}
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">{{ crop.name }}</h5>
+                            <p class="crop-meta mb-2">{{ crop.category.capitalize() }} | {{ crop.quantity }} {{ crop.unit }} available</p>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="crop-price">₹{{ crop.price }}/{{ crop.unit }}</span>
+                                <span class="badge bg-primary">{{ crop.farmer.farm_name }}</span>
+                            </div>
+                            <p class="card-text mb-3">{{ crop.description[:100] }}{% if crop.description|length > 100 %}...{% endif %}</p>
+                            
+                            <div class="mt-auto">
+                                <a href="{{ url_for('crop_detail', crop_id=crop.id) }}" class="btn btn-primary w-100">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info text-center py-5">
+                    <i class="bi bi-search fs-1 mb-3"></i>
+                    <h4>No crops found</h4>
+                    <p>
+                        {% if search %}
+                            No crops matching "{{ search }}" were found.
+                            <a href="{{ url_for('marketplace') }}">Clear search</a>
+                        {% elif category != 'all' %}
+                            No crops in the {{ category }} category right now.
+                            <a href="{{ url_for('marketplace') }}">View all categories</a>
+                        {% else %}
+                            There are no crops available in the marketplace at the moment.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Farms Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h2 class="mb-4">Meet Our Farmers</h2>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <img src="https://images.unsplash.com/photo-1504224357642-c87eacea1da4" class="card-img-top" alt="Farmer" style="height: 180px; object-fit: cover;">
+                <div class="card-body">
+                    <h5 class="card-title">Green Valley Farms</h5>
+                    <p class="text-muted mb-2"><i class="bi bi-geo-alt"></i> Punjab, India</p>
+                    <p class="card-text">Specializing in organic vegetables grown using traditional methods without chemical pesticides.</p>
+                    <a href="#" class="btn btn-outline-primary btn-sm">View Crops</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <img src="https://images.unsplash.com/photo-1717881136326-389b1daf102f" class="card-img-top" alt="Farmer" style="height: 180px; object-fit: cover;">
+                <div class="card-body">
+                    <h5 class="card-title">Sunshine Orchard</h5>
+                    <p class="text-muted mb-2"><i class="bi bi-geo-alt"></i> Karnataka, India</p>
+                    <p class="card-text">Growing the juiciest fruits with sustainable farming practices. Known for mangoes and citrus.</p>
+                    <a href="#" class="btn btn-outline-primary btn-sm">View Crops</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <img src="https://images.unsplash.com/photo-1506358332807-7a25096ebd09" class="card-img-top" alt="Farmer" style="height: 180px; object-fit: cover;">
+                <div class="card-body">
+                    <h5 class="card-title">Heritage Rice Farms</h5>
+                    <p class="text-muted mb-2"><i class="bi bi-geo-alt"></i> West Bengal, India</p>
+                    <p class="card-text">Preserving heritage rice varieties that have been grown for generations using organic methods.</p>
+                    <a href="#" class="btn btn-outline-primary btn-sm">View Crops</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

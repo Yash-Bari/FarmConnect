@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}My Crops - FarmConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>My Crops</h1>
+            <p class="text-muted">Manage your crop listings</p>
+        </div>
+        <div>
+            <a href="{{ url_for('new_crop') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Add New Crop
+            </a>
+        </div>
+    </div>
+    
+    <!-- Crops Table -->
+    <div class="card">
+        <div class="card-body">
+            {% if crops %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for crop in crops %}
+                                <tr id="crop-{{ crop.id }}">
+                                    <td>
+                                        {% if crop.images %}
+                                            {% set first_image = crop.images.split(',')[0] %}
+                                            <img src="{{ url_for('static', filename='uploads/' + first_image) }}" 
+                                                 alt="{{ crop.name }}" 
+                                                 class="rounded" 
+                                                 width="60" 
+                                                 height="60"
+                                                 style="object-fit: cover;">
+                                        {% else %}
+                                            <img src="https://images.unsplash.com/photo-1539811463576-b503d4085592" 
+                                                 alt="{{ crop.name }}" 
+                                                 class="rounded" 
+                                                 width="60" 
+                                                 height="60"
+                                                 style="object-fit: cover;">
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ crop.name }}</td>
+                                    <td>{{ crop.category.capitalize() }}</td>
+                                    <td>₹{{ crop.price }}/{{ crop.unit }}</td>
+                                    <td>{{ crop.quantity }} {{ crop.unit }}</td>
+                                    <td>
+                                        {% if crop.is_available %}
+                                            <span class="badge bg-success">Available</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Unavailable</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ crop.created_at.strftime('%b %d, %Y') }}</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{{ url_for('edit_crop', crop_id=crop.id) }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <button class="btn btn-sm btn-outline-danger delete-crop-btn" 
+                                                    data-crop-id="{{ crop.id }}" 
+                                                    data-crop-name="{{ crop.name }}">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-flower1 fs-1 text-muted mb-3"></i>
+                    <h4>No crops yet</h4>
+                    <p>You haven't added any crops yet. Start by adding your first crop.</p>
+                    <a href="{{ url_for('new_crop') }}" class="btn btn-primary mt-2">
+                        <i class="bi bi-plus-circle"></i> Add Your First Crop
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if user_type == 'farmer' %}
+        Complete Farmer Profile - FarmConnect
+    {% else %}
+        Complete Customer Profile - FarmConnect
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h2 class="text-center mb-4">
+                        {% if user_type == 'farmer' %}
+                            Complete Your Farmer Profile
+                        {% else %}
+                            Complete Your Customer Profile
+                        {% endif %}
+                    </h2>
+                    
+                    <form id="profile-form" method="POST" enctype="multipart/form-data" data-user-type="{{ user_type }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <!-- Profile Picture (common for both) -->
+                        <div class="mb-4">
+                            <label class="form-label">Profile Picture</label>
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    {% if user.profile_picture %}
+                                        <img src="{{ url_for('static', filename='uploads/' + user.profile_picture) }}" alt="Profile Picture" class="rounded-circle" width="100" height="100" id="profile-preview">
+                                    {% else %}
+                                        <img src="https://via.placeholder.com/100x100?text=Profile" alt="Profile Picture" class="rounded-circle" width="100" height="100" id="profile-preview">
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="input-group">
+                                        {{ form.profile_picture(class="form-control custom-file-input", id="profile_picture", data_preview="profile-preview") }}
+                                        <label class="input-group-text" for="profile_picture">Choose File</label>
+                                    </div>
+                                    <div class="form-text">Upload a profile picture (optional)</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if user_type == 'farmer' %}
+                            <!-- Farmer specific fields -->
+                            <div class="mb-3">
+                                <label for="farm_name" class="form-label">{{ form.farm_name.label }} *</label>
+                                {{ form.farm_name(class="form-control", id="farm_name", placeholder="Enter your farm name") }}
+                                {% if form.farm_name.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.farm_name.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="farm_location" class="form-label">{{ form.farm_location.label }} *</label>
+                                {{ form.farm_location(class="form-control", id="farm_location", placeholder="Enter your farm location") }}
+                                {% if form.farm_location.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.farm_location.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="farm_size" class="form-label">{{ form.farm_size.label }}</label>
+                                {{ form.farm_size(class="form-control", id="farm_size", placeholder="e.g., 5 acres") }}
+                                {% if form.farm_size.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.farm_size.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="growing_practices" class="form-label">{{ form.growing_practices.label }}</label>
+                                {{ form.growing_practices(class="form-control", id="growing_practices", rows="3", placeholder="Describe your growing practices (organic, conventional, etc.)") }}
+                                {% if form.growing_practices.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.growing_practices.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="payment_info" class="form-label">{{ form.payment_info.label }} *</label>
+                                {{ form.payment_info(class="form-control", id="payment_info", placeholder="UPI ID or Bank Account details") }}
+                                {% if form.payment_info.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.payment_info.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">This will be shown to customers for payments.</div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="bio" class="form-label">{{ form.bio.label }}</label>
+                                {{ form.bio(class="form-control", id="bio", rows="4", placeholder="Tell customers about your farm and your story...") }}
+                                {% if form.bio.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.bio.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <!-- Customer specific fields -->
+                            <div class="mb-3">
+                                <label for="delivery_address" class="form-label">{{ form.delivery_address.label }} *</label>
+                                {{ form.delivery_address(class="form-control", id="delivery_address", rows="3", placeholder="Enter your delivery address") }}
+                                {% if form.delivery_address.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.delivery_address.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="preferred_payment" class="form-label">{{ form.preferred_payment.label }}</label>
+                                {{ form.preferred_payment(class="form-select", id="preferred_payment") }}
+                                {% if form.preferred_payment.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.preferred_payment.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-primary btn-lg") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if crop %}
+        Edit Crop - FarmConnect
+    {% else %}
+        Add New Crop - FarmConnect
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body p-4">
+                    <h2 class="card-title text-center mb-4">
+                        {% if crop %}
+                            Edit Crop
+                        {% else %}
+                            Add New Crop
+                        {% endif %}
+                    </h2>
+                    
+                    <form id="crop-form" method="POST" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">{{ form.name.label }} *</label>
+                                {{ form.name(class="form-control", id="name", placeholder="Enter crop name") }}
+                                {% if form.name.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.name.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="category" class="form-label">{{ form.category.label }} *</label>
+                                {{ form.category(class="form-select", id="category") }}
+                                {% if form.category.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.category.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="price" class="form-label">{{ form.price.label }} (₹) *</label>
+                                {{ form.price(class="form-control", id="price", placeholder="0.00", type="number", step="0.01", min="0") }}
+                                {% if form.price.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.price.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="quantity" class="form-label">{{ form.quantity.label }} *</label>
+                                {{ form.quantity(class="form-control", id="quantity", placeholder="0.00", type="number", step="0.01", min="0") }}
+                                {% if form.quantity.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.quantity.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="unit" class="form-label">{{ form.unit.label }} *</label>
+                                {{ form.unit(class="form-select", id="unit") }}
+                                {% if form.unit.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.unit.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">{{ form.description.label }} *</label>
+                            {{ form.description(class="form-control", id="description", rows="4", placeholder="Describe your crop, including quality, taste, and growing methods...") }}
+                            {% if form.description.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.description.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="harvest_date" class="form-label">{{ form.harvest_date.label }}</label>
+                            {{ form.harvest_date(class="form-control", id="harvest_date", type="date") }}
+                            {% if form.harvest_date.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.harvest_date.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="images" class="form-label">{{ form.images.label }}</label>
+                            <input type="file" class="form-control" id="images" name="images" multiple accept="image/*">
+                            <div class="form-text">Upload up to 5 images of your crop. First image will be the main display image.</div>
+                            
+                            {% if crop and crop.images %}
+                                <p class="mt-2 mb-1">Current Images:</p>
+                                <div class="row g-2 mt-1" id="current-images">
+                                    {% for image in crop.images.split(',') %}
+                                        <div class="col-md-3 col-6">
+                                            <img src="{{ url_for('static', filename='uploads/' + image) }}" 
+                                                 class="img-thumbnail"
+                                                 alt="Crop image">
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            
+                            <div class="row mt-2" id="image-previews"></div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="form-check form-switch">
+                                {{ form.is_available(class="form-check-input", id="is_available") }}
+                                <label class="form-check-label" for="is_available">{{ form.is_available.label }}</label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('farmer_crops') }}" class="btn btn-outline-secondary">Cancel</a>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

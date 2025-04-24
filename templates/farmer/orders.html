@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block title %}Orders Management - FarmConnect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Orders Management</h1>
+            <p class="text-muted">Track and manage customer orders</p>
+        </div>
+    </div>
+    
+    <!-- Orders Table -->
+    <div class="card">
+        <div class="card-body">
+            {% if orders %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th>Items</th>
+                                <th>Total Amount</th>
+                                <th>Status</th>
+                                <th>Payment</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                                <tr id="order-{{ order.id }}">
+                                    <td>#{{ order.id }}</td>
+                                    <td>
+                                        <div>{{ order.customer.user.full_name }}</div>
+                                        <small class="text-muted">{{ order.customer.user.phone }}</small>
+                                    </td>
+                                    <td>{{ order.order_date.strftime('%b %d, %Y') }}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#orderItemsModal{{ order.id }}">
+                                            View {{ order.items|length }} items
+                                        </button>
+                                        
+                                        <!-- Order Items Modal -->
+                                        <div class="modal fade" id="orderItemsModal{{ order.id }}" tabindex="-1" aria-labelledby="orderItemsModalLabel{{ order.id }}" aria-hidden="true">
+                                            <div class="modal-dialog modal-lg">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="orderItemsModalLabel{{ order.id }}">Order #{{ order.id }} Items</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="table-responsive">
+                                                            <table class="table">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>Crop</th>
+                                                                        <th>Quantity</th>
+                                                                        <th>Price</th>
+                                                                        <th>Subtotal</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {% for item in order.items %}
+                                                                        <tr>
+                                                                            <td>{{ item.crop.name }}</td>
+                                                                            <td>{{ item.quantity }} {{ item.crop.unit }}</td>
+                                                                            <td>₹{{ item.price_per_unit }}/{{ item.crop.unit }}</td>
+                                                                            <td>₹{{ item.subtotal }}</td>
+                                                                        </tr>
+                                                                    {% endfor %}
+                                                                </tbody>
+                                                                <tfoot>
+                                                                    <tr>
+                                                                        <th colspan="3" class="text-end">Total:</th>
+                                                                        <th>₹{{ order.total_amount }}</th>
+                                                                    </tr>
+                                                                </tfoot>
+                                                            </table>
+                                                        </div>
+                                                        
+                                                        <div class="mt-3">
+                                                            <h6>Delivery Address:</h6>
+                                                            <p class="mb-0">{{ order.delivery_address }}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>₹{{ order.total_amount }}</td>
+                                    <td>
+                                        <span class="badge status-badge 
+                                            {% if order.status == 'pending' %}bg-warning
+                                            {% elif order.status == 'accepted' %}bg-primary
+                                            {% elif order.status == 'processing' %}bg-info
+                                            {% elif order.status == 'shipped' %}bg-secondary
+                                            {% elif order.status == 'delivered' %}bg-success
+                                            {% elif order.status == 'rejected' %}bg-danger
+                                            {% endif %}">
+                                            {{ order.status.capitalize() }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if order.payment %}
+                                            {% if order.payment.status == 'pending' %}
+                                                <span class="badge bg-warning">Pending</span>
+                                            {% elif order.payment.status == 'verified' %}
+                                                <span class="badge bg-success">Verified</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Failed</span>
+                                            {% endif %}
+                                            
+                                            {% if order.payment.screenshot %}
+                                                <button type="button" class="btn btn-sm btn-link" data-bs-toggle="modal" data-bs-target="#paymentModal{{ order.id }}">
+                                                    View Screenshot
+                                                </button>
+                                                
+                                                <!-- Payment Screenshot Modal -->
+                                                <div class="modal fade" id="paymentModal{{ order.id }}" tabindex="-1" aria-hidden="true">
+                                                    <div class="modal-dialog modal-md">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title">Payment Screenshot - Order #{{ order.id }}</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body text-center">
+                                                                <img src="{{ url_for('static', filename='uploads/' + order.payment.screenshot) }}" 
+                                                                     class="img-fluid rounded" 
+                                                                     alt="Payment Screenshot">
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% else %}
+                                                <small class="text-muted">No screenshot</small>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-danger">Not Paid</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <form class="order-status-form" data-order-id="{{ order.id }}">
+                                            <div class="input-group input-group-sm">
+                                                <select name="status" class="form-select form-select-sm">
+                                                    <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>Pending</option>
+                                                    <option value="accepted" {% if order.status == 'accepted' %}selected{% endif %}>Accept</option>
+                                                    <option value="processing" {% if order.status == 'processing' %}selected{% endif %}>Processing</option>
+                                                    <option value="shipped" {% if order.status == 'shipped' %}selected{% endif %}>Shipped</option>
+                                                    <option value="delivered" {% if order.status == 'delivered' %}selected{% endif %}>Delivered</option>
+                                                    <option value="rejected" {% if order.status == 'rejected' %}selected{% endif %}>Reject</option>
+                                                </select>
+                                                <button class="btn btn-outline-primary" type="submit">Update</button>
+                                            </div>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox fs-1 text-muted mb-3"></i>
+                    <h4>No orders yet</h4>
+                    <p>Once customers place orders for your crops, they will appear here.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
