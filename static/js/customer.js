@@ -35,12 +35,15 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.json())
             .then(data => {
-                // Debug logs
+                // Enhanced debug logs
                 console.log('Add to cart response:', data);
                 console.log('Cart count:', data.cart_count);
+                console.log('Debug cart data:', data.debug_cart);
                 
                 if (data.success) {
-                    showToast(data.message, 'success');
+                    // Show feedback with more details
+                    const successMsg = `${data.message} (${data.cart_count} items in cart)`;
+                    showToast(successMsg, 'success');
                     
                     // Update cart count in navbar
                     const cartCountBadge = document.querySelector('.cart-count');
@@ -48,6 +51,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         cartCountBadge.textContent = data.cart_count;
                         cartCountBadge.style.display = data.cart_count > 0 ? 'inline-block' : 'none';
                     }
+                    
+                    // Add a small delay before redirect to ensure session is saved
+                    setTimeout(() => {
+                        // Optional - uncomment to auto-redirect to cart
+                        // window.location.href = '/customer/cart';
+                    }, 500);
                 } else {
                     showToast(data.message, 'danger');
                 }

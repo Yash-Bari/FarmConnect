@@ -759,6 +759,38 @@ def order_payment(order_id):
                           form=form,
                           user=user)
 
+# Session test route (for debugging only)
+@app.route('/test/session')
+@login_required
+def test_session():
+    """Test route to verify session functionality"""
+    # Set a test value in session
+    session['test_value'] = f"Test at {datetime.utcnow()}"
+    
+    # Create a test cart if none exists
+    if 'cart' not in session:
+        session['cart'] = []
+    
+    test_cart = session.get('cart', [])
+    test_cart.append({
+        'crop_id': 1,
+        'quantity': 2.5,
+        'test_time': datetime.utcnow().strftime('%H:%M:%S')
+    })
+    
+    # Update session
+    session['cart'] = test_cart
+    session.modified = True
+    
+    # Return session info
+    return jsonify({
+        'session_keys': list(session.keys()),
+        'test_value': session.get('test_value'),
+        'cart': session.get('cart'),
+        'user_id': session.get('_user_id'),
+        'message': 'Session test complete - check if data persists on refresh'
+    })
+
 # Notification routes
 @app.route('/api/notifications/read/<int:notification_id>', methods=['POST'])
 @login_required
