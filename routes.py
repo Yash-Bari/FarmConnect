@@ -1,5 +1,4 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify, abort, session
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from app import app, db
@@ -156,10 +155,9 @@ def edit_crop(crop_id):
     return render_template('farmer/crop_form.html', form=form, user=user, crop=crop, title='Edit Crop')
 
 @app.route('/farmer/crops/delete/<int:crop_id>', methods=['POST'])
-@jwt_required()
+@login_required
 def delete_crop(crop_id):
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = current_user
     
     if not user or user.user_type != 'farmer':
         return jsonify({'success': False, 'message': 'Unauthorized access.'})
@@ -188,10 +186,9 @@ def farmer_orders():
     return render_template('farmer/orders.html', orders=orders, user=user)
 
 @app.route('/farmer/orders/update/<int:order_id>', methods=['POST'])
-@jwt_required()
+@login_required
 def update_order_status(order_id):
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = current_user
     
     if not user or user.user_type != 'farmer':
         return jsonify({'success': False, 'message': 'Unauthorized access.'})

@@ -1,5 +1,4 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify, session
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from app import app, db
@@ -20,12 +19,6 @@ def login():
         user = User.query.filter_by(email=email).first()
         
         if user and user.check_password(password):
-            # Create JWT token
-            access_token = create_access_token(identity=user.id)
-            
-            # Set JWT token in session
-            session['token'] = access_token
-            
             # Login with Flask-Login
             login_user(user)
             
@@ -66,12 +59,6 @@ def register():
         
         db.session.add(user)
         db.session.commit()
-        
-        # Create JWT token
-        access_token = create_access_token(identity=user.id)
-        
-        # Set JWT token in session
-        session['token'] = access_token
         
         # Login with Flask-Login
         login_user(user)
@@ -202,5 +189,6 @@ def get_token():
     if not user or not user.check_password(password):
         return jsonify({'success': False, 'message': 'Invalid email or password'}), 401
     
-    access_token = create_access_token(identity=user.id)
-    return jsonify({'success': True, 'token': access_token, 'user_type': user.user_type})
+    # Use Flask-Login session instead of JWT
+    login_user(user)
+    return jsonify({'success': True, 'user_type': user.user_type})
