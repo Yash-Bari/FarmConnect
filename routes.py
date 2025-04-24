@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify, abort, session
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
-from app import app, db
+from app import app, db, csrf
 from models import User, FarmerProfile, CustomerProfile, Crop, Order, OrderItem, Payment, Notification
 from forms import (LoginForm, RegisterForm, FarmerProfileForm, CustomerProfileForm, 
                   CropForm, OrderStatusForm, PaymentForm)
@@ -357,6 +357,7 @@ def cart():
 
 @app.route('/api/cart/add', methods=['POST'])
 @login_required
+@csrf.exempt
 def add_to_cart():
     user = current_user
     
@@ -402,6 +403,7 @@ def add_to_cart():
 
 @app.route('/api/cart/remove', methods=['POST'])
 @login_required
+@csrf.exempt
 def remove_from_cart():
     user = current_user
     
@@ -423,6 +425,7 @@ def remove_from_cart():
 
 @app.route('/api/cart/update', methods=['POST'])
 @login_required
+@csrf.exempt
 def update_cart():
     user = current_user
     
@@ -632,6 +635,7 @@ def order_payment(order_id):
 # Notification routes
 @app.route('/api/notifications/read/<int:notification_id>', methods=['POST'])
 @login_required
+@csrf.exempt
 def mark_notification_read(notification_id):
     user = current_user
     

@@ -9,6 +9,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 # Removed JWT imports as we're using Flask-Login
 from flask_cors import CORS
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
+from flask_wtf.csrf import CSRFProtect
 from werkzeug.utils import secure_filename
 import uuid
 import json
@@ -51,6 +52,9 @@ def load_user(user_id):
 
 # CORS configuration
 CORS(app)
+
+# Initialize CSRF protection
+csrf = CSRFProtect(app)
 
 # File upload configuration
 UPLOAD_FOLDER = 'static/uploads'

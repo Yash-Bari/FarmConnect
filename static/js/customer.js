@@ -1,6 +1,11 @@
 // Customer-specific JavaScript functionality
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Function to get CSRF token
+    function getCsrfToken() {
+        return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    }
+    
     // Handle add to cart functionality
     const addToCartForms = document.querySelectorAll('.add-to-cart-form');
     addToCartForms.forEach(function(form) {
@@ -16,19 +21,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Check if user is logged in
-            const token = getToken();
-            if (!token) {
-                showToast('Please log in to add items to your cart.', 'warning');
-                window.location.href = '/login';
-                return;
-            }
-            
+            // Using Flask-Login sessions now, no token needed
             fetch('/api/cart/add', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'X-CSRFToken': getCsrfToken()
                 },
                 body: JSON.stringify({
                     crop_id: cropId,
@@ -121,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getToken()}`
+                'X-CSRFToken': getCsrfToken()
             },
             body: JSON.stringify({
                 crop_id: cropId,
@@ -148,8 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('/api/cart/remove', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getToken()}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 crop_id: cropId
