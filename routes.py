@@ -617,13 +617,13 @@ def checkout():
                         
                     farmer_orders[farmer_id] = {
                         'farmer': farmer,
-                        'items': [],
+                        'cart_items': [],  # Renamed to avoid conflict with dict.items()
                         'total': 0
                     }
                 
                 quantity = float(item['quantity'])
                 item_total = crop.price * quantity
-                farmer_orders[farmer_id]['items'].append({
+                farmer_orders[farmer_id]['cart_items'].append({
                     'crop': crop,
                     'quantity': quantity,
                     'price': crop.price,
@@ -650,7 +650,7 @@ def checkout():
             db.session.flush()  # Get the order ID
             
             # Create order items
-            for item in order_data['items']:
+            for item in order_data['cart_items']:
                 order_item = OrderItem(
                     order_id=order.id,
                     crop_id=item['crop'].id,

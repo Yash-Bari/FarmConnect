@@ -6,37 +6,7 @@
 <div class="container py-4">
     <h1 class="mb-4">Your Shopping Cart</h1>
     
-    <!-- Debug Session Data (will be removed in production) -->
-    <div class="card mb-4">
-        <div class="card-header bg-dark">
-            <h6 class="mb-0 d-flex justify-content-between align-items-center">
-                <span>Debug: Session Information</span>
-                <a href="/test/session" class="btn btn-sm btn-outline-info" target="_blank">Run Session Test</a>
-            </h6>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <h6>Session Keys:</h6>
-                    <ul>
-                        {% for key in session.keys() %}
-                            <li>{{ key }}</li>
-                        {% else %}
-                            <li>No session keys found</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                <div class="col-md-6">
-                    <h6>Cart Data:</h6>
-                    {% if session.get('cart') %}
-                        <pre class="bg-dark p-2 rounded" style="max-height: 200px; overflow-y: auto; font-size: 12px;">{{ session.get('cart') }}</pre>
-                    {% else %}
-                        <div class="alert alert-warning">No cart data found in session</div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Debug Section Removed -->
     
     {% if farmers %}
         <div class="row">

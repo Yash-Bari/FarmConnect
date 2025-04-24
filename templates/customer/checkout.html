@@ -48,7 +48,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {% for item in order.items %}
+                                        {% for item in order.cart_items %}
                                             <tr>
                                                 <td>{{ item.crop.name }}</td>
                                                 <td>₹{{ item.price }}/{{ item.crop.unit }}</td>
