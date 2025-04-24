@@ -1,5 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash, jsonify, session
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from app import app, db
 from models import User, FarmerProfile, CustomerProfile
@@ -24,6 +25,9 @@ def login():
             
             # Set JWT token in session
             session['token'] = access_token
+            
+            # Login with Flask-Login
+            login_user(user)
             
             # Redirect based on user type
             if user.user_type == 'farmer':
