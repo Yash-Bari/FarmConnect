@@ -54,10 +54,9 @@ def farmer_dashboard():
                           notifications=notifications)
 
 @app.route('/farmer/crops')
-@jwt_required()
+@login_required
 def farmer_crops():
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = current_user
     
     if not user or user.user_type != 'farmer':
         flash('Unauthorized access.', 'danger')
@@ -67,10 +66,9 @@ def farmer_crops():
     return render_template('farmer/crops.html', crops=crops, user=user)
 
 @app.route('/farmer/crops/new', methods=['GET', 'POST'])
-@jwt_required()
+@login_required
 def new_crop():
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = current_user
     
     if not user or user.user_type != 'farmer':
         flash('Unauthorized access.', 'danger')
@@ -111,10 +109,9 @@ def new_crop():
     return render_template('farmer/crop_form.html', form=form, user=user, title='Add New Crop')
 
 @app.route('/farmer/crops/edit/<int:crop_id>', methods=['GET', 'POST'])
-@jwt_required()
+@login_required
 def edit_crop(crop_id):
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = current_user
     
     if not user or user.user_type != 'farmer':
         flash('Unauthorized access.', 'danger')
