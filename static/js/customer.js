@@ -35,6 +35,10 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.json())
             .then(data => {
+                // Debug logs
+                console.log('Add to cart response:', data);
+                console.log('Cart count:', data.cart_count);
+                
                 if (data.success) {
                     showToast(data.message, 'success');
                     

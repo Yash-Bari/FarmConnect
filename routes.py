@@ -316,16 +316,15 @@ def crop_detail(crop_id):
 def cart():
     user = current_user
     
-    if not user or user.user_type != 'customer':
+    if user.user_type != 'customer':
         flash('Unauthorized access.', 'danger')
         return redirect(url_for('login'))
     
     # Debug output to see if the session has a cart
-    print(f"Session ID: {session.sid}")
-    print(f"Session Cart: {session.get('cart')}")
-    print(f"Session Keys: {list(session.keys())}")
-    app.logger.info(f"Session Cart: {session.get('cart')}")
-    app.logger.info(f"Session Keys: {list(session.keys())}")
+    print(f"Session Cart in cart route: {session.get('cart')}")
+    print(f"Session Keys in cart route: {list(session.keys())}")
+    app.logger.info(f"Session Cart in cart route: {session.get('cart')}")
+    app.logger.info(f"Session Keys in cart route: {list(session.keys())}")
     
     # Get cart from session
     cart_items = session.get('cart', [])
@@ -368,7 +367,7 @@ def cart():
 def add_to_cart():
     user = current_user
     
-    if not user or user.user_type != 'customer':
+    if user.user_type != 'customer':
         return jsonify({'success': False, 'message': 'Unauthorized access.'})
     
     data = request.json
@@ -410,7 +409,6 @@ def add_to_cart():
     session.modified = True
     
     # Debug output
-    print(f"Add to cart - Session ID: {session.sid}")
     print(f"Add to cart - Session Cart (after add): {session.get('cart')}")
     print(f"Add to cart - Session Keys: {list(session.keys())}")
     app.logger.info(f"Add to cart - Session Cart (after add): {session.get('cart')}")
@@ -424,7 +422,7 @@ def add_to_cart():
 def remove_from_cart():
     user = current_user
     
-    if not user or user.user_type != 'customer':
+    if user.user_type != 'customer':
         return jsonify({'success': False, 'message': 'Unauthorized access.'})
     
     data = request.json
