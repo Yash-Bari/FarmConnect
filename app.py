@@ -6,7 +6,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+# Removed JWT imports as we're using Flask-Login
 from flask_cors import CORS
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
 from werkzeug.utils import secure_filename
@@ -36,31 +36,7 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 }
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# JWT configuration
-app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY", "jwt-dev-secret")
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=24)
-app.config["JWT_TOKEN_LOCATION"] = ["headers", "cookies", "query_string"]
-jwt = JWTManager(app)
-
-# Custom JWT token loader from session
-@jwt.token_in_blocklist_loader
-def check_if_token_in_blocklist(jwt_header, jwt_payload):
-    return False
-
-@jwt.user_lookup_loader
-def user_lookup_callback(_jwt_header, jwt_data):
-    from models import User
-    identity = jwt_data["sub"]
-    return User.query.filter_by(id=identity).one_or_none()
-
-# Custom request handler to load JWT from session if available
-@app.before_request
-def get_jwt_from_session():
-    if 'token' in session:
-        # Create a custom header environ key to inject the Authorization header
-        auth_header = f'Bearer {session["token"]}'
-        if 'HTTP_AUTHORIZATION' not in request.environ:
-            request.environ['HTTP_AUTHORIZATION'] = auth_header
+# Authentication is now handled by Flask-Login
 
 # Initialize Flask-Login
 login_manager = LoginManager()
