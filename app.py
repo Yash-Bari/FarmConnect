@@ -28,26 +28,17 @@ db = SQLAlchemy(model_class=Base)
 
 # Create the Flask app
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")  # Default for development
+# Set a strong secret key for session encryption and signing FIRST before other configs
+app.secret_key = os.environ.get("SESSION_SECRET", "farmconnect-dev-secret-key-2025")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-# Configure session - use Flask's built-in session for simplicity
-app.config["SESSION_TYPE"] = "filesystem"
-app.config["SESSION_PERMANENT"] = True
+# Configure Flask session
+app.config["SESSION_TYPE"] = None  # Use Flask's default session (client-side cookie)
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
-app.config["SESSION_FILE_DIR"] = os.path.join(tempfile.gettempdir(), "flask_session")
-app.config["SESSION_KEY_PREFIX"] = "farmconnect_"
-app.config["SESSION_FILE_THRESHOLD"] = 100  # Maximum number of sessions in session directory
+app.config["SESSION_PERMANENT"] = True
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SECURE"] = False  # Set to True in production with HTTPS
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-app.config["SESSION_USE_SIGNER"] = True
-
-# Initialize Session
-Session(app)
-
-# Set a strong secret key for session encryption and signing
-app.secret_key = os.environ.get("SESSION_SECRET", os.urandom(24))
 
 # Configure database
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///farmconnect.db")
