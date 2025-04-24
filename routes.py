@@ -176,10 +176,9 @@ def delete_crop(crop_id):
     return jsonify({'success': True, 'message': 'Crop deleted successfully!'})
 
 @app.route('/farmer/orders')
-@jwt_required()
+@login_required
 def farmer_orders():
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = current_user
     
     if not user or user.user_type != 'farmer':
         flash('Unauthorized access.', 'danger')
@@ -302,7 +301,14 @@ def crop_detail(crop_id):
     # Get current user for template
     user = current_user if current_user.is_authenticated else None
     
-    return render_template('customer/crop_detail.html', crop=crop, farmer=farmer, user=user)
+    # Get similar crops (same category)
+    similar_crops = Crop.query.filter_by(category=crop.category, is_available=True).all()
+    
+    return render_template('customer/crop_detail.html', 
+                          crop=crop, 
+                          farmer=farmer, 
+                          user=user,
+                          similar_crops=similar_crops)
 
 @app.route('/customer/cart')
 @login_required
@@ -349,10 +355,9 @@ def cart():
     return render_template('customer/cart.html', farmers=farmers.values(), user=user)
 
 @app.route('/api/cart/add', methods=['POST'])
-@jwt_required()
+@login_required
 def add_to_cart():
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = current_user
     
     if not user or user.user_type != 'customer':
         return jsonify({'success': False, 'message': 'Unauthorized access.'})
@@ -395,10 +400,9 @@ def add_to_cart():
     return jsonify({'success': True, 'message': 'Item added to cart.', 'cart_count': len(cart)})
 
 @app.route('/api/cart/remove', methods=['POST'])
-@jwt_required()
+@login_required
 def remove_from_cart():
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = current_user
     
     if not user or user.user_type != 'customer':
         return jsonify({'success': False, 'message': 'Unauthorized access.'})
@@ -417,10 +421,9 @@ def remove_from_cart():
     return jsonify({'success': True, 'message': 'Item removed from cart.', 'cart_count': len(session.get('cart', []))})
 
 @app.route('/api/cart/update', methods=['POST'])
-@jwt_required()
+@login_required
 def update_cart():
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = current_user
     
     if not user or user.user_type != 'customer':
         return jsonify({'success': False, 'message': 'Unauthorized access.'})
@@ -453,10 +456,9 @@ def update_cart():
     return jsonify({'success': True, 'message': 'Cart updated.', 'cart_count': len(session.get('cart', []))})
 
 @app.route('/customer/checkout', methods=['GET', 'POST'])
-@jwt_required()
+@login_required
 def checkout():
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = current_user
     
     if not user or user.user_type != 'customer':
         flash('Unauthorized access.', 'danger')
@@ -561,10 +563,9 @@ def checkout():
                           customer_profile=user.customer_profile)
 
 @app.route('/customer/orders')
-@jwt_required()
+@login_required
 def customer_orders():
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = current_user
     
     if not user or user.user_type != 'customer':
         flash('Unauthorized access.', 'danger')
@@ -574,10 +575,9 @@ def customer_orders():
     return render_template('customer/orders.html', orders=orders, user=user)
 
 @app.route('/customer/orders/<int:order_id>/payment', methods=['GET', 'POST'])
-@jwt_required()
+@login_required
 def order_payment(order_id):
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user = current_user
     
     if not user or user.user_type != 'customer':
         flash('Unauthorized access.', 'danger')
@@ -630,14 +630,14 @@ def order_payment(order_id):
 
 # Notification routes
 @app.route('/api/notifications/read/<int:notification_id>', methods=['POST'])
-@jwt_required()
+@login_required
 def mark_notification_read(notification_id):
-    user_id = get_jwt_identity()
+    user = current_user
     
     notification = Notification.query.get_or_404(notification_id)
     
     # Check if notification belongs to user
-    if notification.user_id != user_id:
+    if notification.user_id != user.id:
         return jsonify({'success': False, 'message': 'Unauthorized access.'})
     
     notification.is_read = True
@@ -646,11 +646,11 @@ def mark_notification_read(notification_id):
     return jsonify({'success': True, 'message': 'Notification marked as read.'})
 
 @app.route('/api/notifications/read/all', methods=['POST'])
-@jwt_required()
+@login_required
 def mark_all_notifications_read():
-    user_id = get_jwt_identity()
+    user = current_user
     
-    notifications = Notification.query.filter_by(user_id=user_id, is_read=False).all()
+    notifications = Notification.query.filter_by(user_id=user.id, is_read=False).all()
     for notification in notifications:
         notification.is_read = True
     
