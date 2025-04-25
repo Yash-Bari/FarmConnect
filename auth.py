@@ -106,6 +106,14 @@ def farmer_profile():
                 user.profile_picture = filename
         
         # Create or update farmer profile
+        # Handle UPI QR code upload
+        if 'upi_qr_code' in request.files and request.files['upi_qr_code'].filename:
+            file = request.files['upi_qr_code']
+            if file and allowed_file(file.filename):
+                filename = save_file(file, app.config['UPLOAD_FOLDER'])
+                if user.farmer_profile:
+                    user.farmer_profile.upi_qr_code = filename
+
         if user.farmer_profile:
             # Update existing profile
             user.farmer_profile.farm_name = form.farm_name.data
@@ -123,7 +131,8 @@ def farmer_profile():
                 farm_size=form.farm_size.data,
                 growing_practices=form.growing_practices.data,
                 payment_info=form.payment_info.data,
-                bio=form.bio.data
+                bio=form.bio.data,
+                upi_qr_code=filename if 'upi_qr_code' in request.files and request.files['upi_qr_code'].filename else None
             )
             db.session.add(farmer_profile)
         

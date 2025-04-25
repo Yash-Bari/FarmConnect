@@ -53,12 +53,57 @@
                             <div class="col-md-6">
                                 <div class="card h-100">
                                     <div class="card-body text-center">
-                                        <h6 class="mb-3">Scan QR Code</h6>
-                                        <!-- Placeholder for QR code - in a real app, this would be generated -->
+                                        <h6 class="mb-3">Scan QR Code to Pay</h6>
                                         <div class="payment-qr bg-light d-flex justify-content-center align-items-center" style="height: 200px;">
-                                            <p class="text-muted mb-0">QR Code not available</p>
+                                            {% if farmer.upi_qr_code %}
+                                                <div class="qr-code-container">
+                                                    <img src="{{ url_for('static', filename='uploads/' + farmer.upi_qr_code) }}" 
+                                                        alt="UPI QR Code" class="img-fluid" style="max-height: 180px;">
+                                                    <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="viewFullQR('{{ url_for('static', filename='uploads/' + farmer.upi_qr_code) }}')">View Full Size QR</button>
+                                                </div>
+                                            {% else %}
+                                                <p class="text-muted mb-0">QR Code not available</p>
+                                            {% endif %}
                                         </div>
-                                        <p class="text-muted mt-2 small">Or use the UPI/Bank details provided</p>
+                                        <p class="text-muted mt-2 small">
+                                            {% if farmer.upi_qr_code %}
+                                                Scan the QR code to pay ₹{{ order.total_amount }} directly
+                                            {% else %}
+                                                Please use the UPI/Bank details provided
+                                            {% endif %}
+                                        </p>
+                                        <script>
+                                            function viewFullQR(url) {
+                                                // Create modal if it doesn't exist
+                                                let modal = document.getElementById('qr-modal');
+                                                if (!modal) {
+                                                    modal = document.createElement('div');
+                                                    modal.id = 'qr-modal';
+                                                    modal.className = 'modal fade';
+                                                    modal.innerHTML = `
+                                                        <div class="modal-dialog modal-dialog-centered">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title">UPI QR Code</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                                </div>
+                                                                <div class="modal-body text-center">
+                                                                    <img src="" class="img-fluid" style="max-height: 80vh;">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    `;
+                                                    document.body.appendChild(modal);
+                                                }
+
+                                                // Set QR code image
+                                                modal.querySelector('img').src = url;
+
+                                                // Show modal
+                                                const bsModal = new bootstrap.Modal(modal);
+                                                bsModal.show();
+                                            }
+                                        </script>
                                     </div>
                                 </div>
                             </div>

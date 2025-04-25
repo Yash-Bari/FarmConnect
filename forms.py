@@ -23,6 +23,7 @@ class FarmerProfileForm(FlaskForm):
     farm_size = StringField('Farm Size', validators=[Optional()])
     growing_practices = TextAreaField('Growing Practices', validators=[Optional()])
     payment_info = StringField('Payment Information (UPI/Bank)', validators=[DataRequired()])
+    upi_qr_code = FileField('UPI QR Code', validators=[Optional(), FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')])
     bio = TextAreaField('About Your Farm', validators=[Optional()])
     profile_picture = FileField('Profile Picture', validators=[Optional(), FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')])
     submit = SubmitField('Save Profile')
@@ -50,12 +51,13 @@ class CropForm(FlaskForm):
         ('g', 'Gram'),
         ('piece', 'Piece'),
         ('bunch', 'Bunch'),
-        ('lb', 'Pound')
+        ('lb', 'Pound'),
+        ('bundle', 'Bundle')
     ])
     description = TextAreaField('Description', validators=[DataRequired()])
     harvest_date = DateField('Harvest Date', validators=[Optional()])
-    images = FileField('Images', validators=[Optional(), FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')])
     is_available = BooleanField('Available for Sale', default=True)
+    images = FileField('Crop Images', validators=[Optional(), FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')], render_kw={"multiple": True})
     submit = SubmitField('Save Crop')
 
 class OrderStatusForm(FlaskForm):

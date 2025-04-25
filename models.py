@@ -1,4 +1,4 @@
-from app import db
+from extensions import db
 from datetime import datetime
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -34,6 +34,7 @@ class FarmerProfile(db.Model):
     farm_size = db.Column(db.String(50))
     growing_practices = db.Column(db.Text)
     payment_info = db.Column(db.String(255))
+    upi_qr_code = db.Column(db.String(255))  # Path to UPI QR code image
     bio = db.Column(db.Text)
     
     # Relationships
@@ -95,7 +96,7 @@ class Payment(db.Model):
     amount = db.Column(db.Float, nullable=False)
     payment_method = db.Column(db.String(50), nullable=False)
     screenshot = db.Column(db.String(255))
-    status = db.Column(db.String(20), default='pending')  # pending, verified, failed
+    status = db.Column(db.String(20), default='pending')  # pending, verified, rejected
     payment_date = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Notification(db.Model):

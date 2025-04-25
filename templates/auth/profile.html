@@ -106,6 +106,41 @@
                                         {% endfor %}
                                     </div>
                                 {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="upi_qr_code" class="form-label">{{ form.upi_qr_code.label }}</label>
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        {% if farmer_profile and farmer_profile.upi_qr_code %}
+                                            <img src="{{ url_for('static', filename='uploads/' + farmer_profile.upi_qr_code) }}" alt="UPI QR Code" class="img-thumbnail" width="150" height="150" id="qr-preview">
+                                        {% else %}
+                                            <img src="https://via.placeholder.com/150x150?text=QR+Code" alt="UPI QR Code" class="img-thumbnail" width="150" height="150" id="qr-preview">
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="input-group">
+                                            {{ form.upi_qr_code(class="form-control custom-file-input", id="upi_qr_code", data_preview="qr-preview") }}
+                                            <label class="input-group-text" for="upi_qr_code">Choose File</label>
+                                        </div>
+                                        <div class="form-text">Upload your UPI QR code image for easy payments</div>
+                                    </div>
+                                </div>
+                                {% if form.upi_qr_code.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.upi_qr_code.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                                {% if form.payment_info.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.payment_info.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                                 <div class="form-text">This will be shown to customers for payments.</div>
                             </div>
                             

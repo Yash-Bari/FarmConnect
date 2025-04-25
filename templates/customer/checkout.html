@@ -33,7 +33,7 @@
                 {% for farmer_id, order in farmer_orders.items() %}
                     <div class="card mb-4">
                         <div class="card-header bg-transparent">
-                            <h5 class="mb-0">Order from {{ order.farmer.farm_name }}</h5>
+                            <h5 class="mb-0">Order from {{ order['farmer'].farm_name }}</h5>
                         </div>
                         <div class="card-body">
                             <!-- Order Items -->
@@ -48,12 +48,12 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {% for item in order.items %}
+                                        {% for item in order['items'] %}
                                             <tr>
-                                                <td>{{ item.crop.name }}</td>
-                                                <td>₹{{ item.price }}/{{ item.crop.unit }}</td>
-                                                <td>{{ item.quantity }} {{ item.crop.unit }}</td>
-                                                <td class="text-end">₹{{ '%.2f'|format(item.subtotal) }}</td>
+                                                <td>{{ item['crop'].name }}</td>
+                                                <td>₹{{ item['price'] }}/{{ item['crop'].unit }}</td>
+                                                <td>{{ item['quantity'] }} {{ item['crop'].unit }}</td>
+                                                <td class="text-end">₹{{ '%.2f'|format(item['subtotal']) }}</td>
                                             </tr>
                                         {% endfor %}
                                     </tbody>
@@ -70,10 +70,38 @@
                             <div class="mt-3">
                                 <h6>Payment Information</h6>
                                 <p>You'll need to make payment to this farmer using:</p>
-                                <div class="alert alert-info">
-                                    <strong>UPI/Bank Details:</strong> {{ order.farmer.payment_info }}
+                                <div class="row align-items-center">
+                                    <div class="col-md-6">
+                                        <div class="alert alert-info">
+                                            <strong>UPI/Bank Details:</strong> {{ order['farmer'].payment_info }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 text-center">
+                                        {% if order['farmer'].upi_qr_code %}
+                                            <div class="qr-code-container">
+                                                <img src="{{ url_for('static', filename='uploads/' + order['farmer'].upi_qr_code) }}" 
+                                                    alt="UPI QR Code" class="img-thumbnail" style="max-width: 200px;">
+                                                <div class="mt-2">
+                                                    <small class="text-muted">Scan QR code to pay</small>
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-outline-primary mt-2" 
+                                                        onclick="viewFullQR('{{ url_for('static', filename='uploads/' + order['farmer'].upi_qr_code) }}')">
+                                                    View Full Size QR
+                                                </button>
+                                                <script>
+                                                    function viewFullQR(url) {
+                                                        window.open(url, '_blank');
+                                                    }
+                                                </script>
+                                            </div>
+                                        {% else %}
+                                            <div class="alert alert-warning">
+                                                <small>UPI QR code not available</small>
+                                            </div>
+                                        {% endif %}
+                                    </div>
                                 </div>
-                                <p class="text-muted small">You'll need to upload a payment screenshot after placing the order.</p>
+                                <p class="text-muted small mt-2">You'll need to upload a payment screenshot after placing the order.</p>
                             </div>
                         </div>
                     </div>

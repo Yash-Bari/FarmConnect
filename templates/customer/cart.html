@@ -96,20 +96,18 @@
                         <h5 class="mb-0">Order Summary</h5>
                     </div>
                     <div class="card-body">
-                        {% set total = 0 %}
                         {% for farmer in farmers %}
                             <div class="d-flex justify-content-between mb-2">
                                 <span>{{ farmer.farmer_name }}:</span>
                                 <span>₹{{ '%.2f'|format(farmer.total) }}</span>
                             </div>
-                            {% set total = total + farmer.total %}
                         {% endfor %}
                         
                         <hr>
                         
                         <div class="d-flex justify-content-between mb-3">
                             <span class="fw-bold">Total:</span>
-                            <span class="fw-bold">₹{{ '%.2f'|format(total) }}</span>
+                            <span class="fw-bold" id="cart-total">₹{{ '%.2f'|format(cart_total) }}</span>
                         </div>
                         
                         <div class="d-grid">

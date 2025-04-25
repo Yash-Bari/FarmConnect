@@ -41,6 +41,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Handle order status updates
     const orderStatusForms = document.querySelectorAll('.order-status-form');
+    
+    // Handle payment status updates
+    const paymentStatusForms = document.querySelectorAll('.payment-status-form');
     orderStatusForms.forEach(function(form) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -48,14 +51,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const orderId = this.dataset.orderId;
             const statusSelect = this.querySelector('select[name="status"]');
             const status = statusSelect.value;
+            const csrfToken = this.querySelector('input[name="csrf_token"]').value;
             
             fetch(`/farmer/orders/update/${orderId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    'Authorization': `Bearer ${getToken()}`
+                    'X-CSRFToken': csrfToken
                 },
-                body: `status=${status}`
+                body: `status=${status}&csrf_token=${csrfToken}`
             })
             .then(response => response.json())
             .then(data => {
@@ -99,6 +103,62 @@ document.addEventListener('DOMContentLoaded', function() {
                 showToast('An error occurred. Please try again.', 'danger');
             });
         });
+    });
+    
+    // Handle payment status form submissions
+    paymentStatusForms.forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            e.stopPropagation(); // Prevent event bubbling
+            
+            const orderId = this.dataset.orderId;
+            const statusSelect = this.querySelector('select[name="payment_status"]');
+            const status = statusSelect.value;
+            const csrfToken = this.querySelector('input[name="csrf_token"]').value;
+            
+            fetch(`/farmer/payment/update/${orderId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken
+                },
+                body: `status=${status}&csrf_token=${csrfToken}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error updating payment status:', error);
+                showToast('An error occurred. Please try again.', 'danger');
+            });
+        });
+    });
+
+    // Handle payment screenshot modals
+    const paymentModals = document.querySelectorAll('.payment-modal');
+    paymentModals.forEach(modal => {
+        modal.addEventListener('shown.bs.modal', function(e) {
+            e.stopPropagation(); // Prevent event bubbling
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        });
+
+        modal.addEventListener('hidden.bs.modal', function(e) {
+            e.stopPropagation(); // Prevent event bubbling
+            document.body.style.overflow = ''; // Restore scrolling
+        });
+
+        // Prevent modal from closing when clicking on the image
+        const modalImage = modal.querySelector('img');
+        if (modalImage) {
+            modalImage.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
     });
     
     // Multi-image upload preview for crop form
