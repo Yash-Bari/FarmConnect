@@ -31,7 +31,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here')
 
 # Configure database
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:yash#oo7@localhost:3307/farmconnect"
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://avnadmin:AVNS_v0xlfmLjNPCQRwjxJx9@mysql-8cf57f9-khodseganesh2003-1d58.l.aivencloud.com:25713/farmconnect"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Initialize extensions with app
