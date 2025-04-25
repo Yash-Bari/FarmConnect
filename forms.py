@@ -47,6 +47,7 @@ class CropForm(FlaskForm):
     price = FloatField('Price', validators=[DataRequired()])
     quantity = FloatField('Quantity', validators=[DataRequired()])
     unit = SelectField('Unit', choices=[
+        ('ton', 'Ton'),
         ('kg', 'Kilogram'),
         ('g', 'Gram'),
         ('piece', 'Piece'),
