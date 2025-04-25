@@ -77,9 +77,7 @@
                             </li>
                         {% endif %}
                         <li class="nav-item dropdown position-relative">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-person-circle"></i> {{ current_user.full_name }}
-                            </a>
+                            
                             <ul class="dropdown-menu dropdown-menu-end">
                                 {% if current_user.user_type == 'farmer' %}
                                     <li><a class="dropdown-item" href="{{ url_for('farmer_profile') }}"><i class="bi bi-person"></i> Profile</a></li>

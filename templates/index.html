@@ -16,7 +16,7 @@
                     <a href="{{ url_for('customer_orders') }}" class="btn btn-outline-light btn-lg">My Orders</a>
                 {% elif current_user.user_type == 'farmer' %}
                     <a href="{{ url_for('farmer_dashboard') }}" class="btn btn-accent btn-lg">My Dashboard</a>
-                    <a href="{{ url_for('manage_crops') }}" class="btn btn-outline-light btn-lg">Manage Crops</a>
+                    <a href="{{ url_for('farmer_crops') }}" class="btn btn-outline-light btn-lg">Manage Crops</a>
                     <a href="{{ url_for('farmer_orders') }}" class="btn btn-outline-light btn-lg">View Orders</a>
                 {% endif %}
             {% else %}
@@ -89,7 +89,7 @@
                                 <i class="bi bi-basket fs-1 text-primary mb-3"></i>
                                 <h5 class="card-title">Manage Crops</h5>
                                 <p class="card-text">Add and manage your crop listings.</p>
-                                <a href="{{ url_for('manage_crops') }}" class="btn btn-primary">Manage Crops</a>
+                                <a href="{{ url_for('farmer_crops') }}" class="btn btn-primary">Manage Crops</a>
                             </div>
                         </div>
                     </div>
