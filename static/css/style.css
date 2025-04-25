@@ -122,6 +122,19 @@ main {
     color: var(--accent-dark) !important;
 }
 
+.navbar-toggler {
+    border: 2px solid var(--accent-dark);
+    padding: 0.5rem;
+}
+
+.navbar-toggler:focus {
+    box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.25);
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(46, 125, 50, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
 .navbar-nav .nav-link {
     color: var(--text-color) !important;
     font-weight: 500;
@@ -134,6 +147,25 @@ main {
 .navbar-nav .active > .nav-link {
     color: var(--accent-dark) !important;
     font-weight: 600;
+}
+
+@media (max-width: 991px) {
+    .navbar-collapse {
+        background-color: var(--light-color);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-top: 0.5rem;
+    }
+    
+    .navbar-nav .nav-link {
+        padding: 0.75rem 1rem;
+        border-radius: 0.25rem;
+    }
+    
+    .navbar-nav .nav-link:hover {
+        background-color: var(--accent-light);
+    }
 }
 
 /* Form styles */
