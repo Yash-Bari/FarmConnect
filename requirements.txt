@@ -4,6 +4,7 @@ Flask-Login==0.6.3
 Flask-WTF==1.2.1
 Flask-Cors==4.0.0
 Flask-Session==0.6.0
+Flask-Mail==0.9.1
 Werkzeug==3.0.1
 SQLAlchemy==2.0.27
 PyMySQL==1.1.0
@@ -13,3 +14,4 @@ Pillow==10.2.0
 email-validator==2.1.1
 WTForms==3.1.2
 Flask-Migrate
+itsdangerous==2.1.2

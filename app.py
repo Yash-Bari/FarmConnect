@@ -11,6 +11,7 @@ from flask_login import LoginManager, login_user, current_user, logout_user, log
 from flask_wtf.csrf import CSRFProtect
 from flask_session import Session
 from flask_migrate import Migrate
+from flask_mail import Mail
 from werkzeug.utils import secure_filename
 import uuid
 import json
@@ -64,6 +65,14 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message_category = 'info'
+
+# Configure Flask-Mail
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'khodseganesh2003@gmail.com'
+app.config['MAIL_PASSWORD'] = 'idbsehxwevqplxsq'
+mail = Mail(app)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -132,7 +141,20 @@ with app.app_context():
 
 # Import routes
 from routes import *
-from auth import *
+from auth import (
+    login, register, logout, farmer_profile, customer_profile,
+    reset_password_request, reset_password, get_token
+)
+
+# Register auth routes
+app.add_url_rule('/login', 'login', login, methods=['GET', 'POST'])
+app.add_url_rule('/register', 'register', register, methods=['GET', 'POST'])
+app.add_url_rule('/logout', 'logout', logout)
+app.add_url_rule('/farmer/profile', 'farmer_profile', farmer_profile, methods=['GET', 'POST'])
+app.add_url_rule('/customer/profile', 'customer_profile', customer_profile, methods=['GET', 'POST'])
+app.add_url_rule('/reset_password_request', 'reset_password_request', reset_password_request, methods=['GET', 'POST'])
+app.add_url_rule('/reset_password/<token>', 'reset_password', reset_password, methods=['GET', 'POST'])
+app.add_url_rule('/api/auth/token', 'get_token', get_token, methods=['POST'])
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
