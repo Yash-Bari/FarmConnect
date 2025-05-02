@@ -118,47 +118,75 @@ def farmer_profile():
         form = FarmerProfileForm()
     
     if form.validate_on_submit():
-        # Handle profile picture upload
-        if 'profile_picture' in request.files and request.files['profile_picture'].filename:
-            file = request.files['profile_picture']
-            if file and allowed_file(file.filename):
-                filename = save_file(file, app.config['UPLOAD_FOLDER'])
-                user.profile_picture = filename
-        
-        # Create or update farmer profile
-        # Handle UPI QR code upload
-        if 'upi_qr_code' in request.files and request.files['upi_qr_code'].filename:
-            file = request.files['upi_qr_code']
-            if file and allowed_file(file.filename):
-                filename = save_file(file, app.config['UPLOAD_FOLDER'])
-                if user.farmer_profile:
-                    user.farmer_profile.upi_qr_code = filename
+        try:
+            # Handle profile picture upload
+            if 'profile_picture' in request.files and request.files['profile_picture'].filename:
+                file = request.files['profile_picture']
+                if file and allowed_file(file.filename):
+                    filename = save_file(file, current_app.config['UPLOAD_FOLDER'])
+                    if filename:
+                        # If there was a previous profile picture, try to delete it
+                        if user.profile_picture:
+                            try:
+                                old_file_path = os.path.join(current_app.root_path, current_app.config['UPLOAD_FOLDER'], user.profile_picture)
+                                if os.path.exists(old_file_path):
+                                    os.remove(old_file_path)
+                            except Exception as e:
+                                current_app.logger.error(f'Error deleting old profile picture: {str(e)}')
+                        user.profile_picture = filename
+                    else:
+                        flash('Error uploading profile picture.', 'danger')
+            
+            # Handle UPI QR code upload
+            if 'upi_qr_code' in request.files and request.files['upi_qr_code'].filename:
+                file = request.files['upi_qr_code']
+                if file and allowed_file(file.filename):
+                    filename = save_file(file, current_app.config['UPLOAD_FOLDER'])
+                    if filename:
+                        # If there was a previous QR code, try to delete it
+                        if user.farmer_profile and user.farmer_profile.upi_qr_code:
+                            try:
+                                old_file_path = os.path.join(current_app.root_path, current_app.config['UPLOAD_FOLDER'], user.farmer_profile.upi_qr_code)
+                                if os.path.exists(old_file_path):
+                                    os.remove(old_file_path)
+                            except Exception as e:
+                                current_app.logger.error(f'Error deleting old UPI QR code: {str(e)}')
+                        if user.farmer_profile:
+                            user.farmer_profile.upi_qr_code = filename
+                    else:
+                        flash('Error uploading UPI QR code.', 'danger')
 
-        if user.farmer_profile:
-            # Update existing profile
-            user.farmer_profile.farm_name = form.farm_name.data
-            user.farmer_profile.farm_location = form.farm_location.data
-            user.farmer_profile.farm_size = form.farm_size.data
-            user.farmer_profile.growing_practices = form.growing_practices.data
-            user.farmer_profile.payment_info = form.payment_info.data
-            user.farmer_profile.bio = form.bio.data
-        else:
-            # Create new profile
-            farmer_profile = FarmerProfile(
-                user_id=user.id,
-                farm_name=form.farm_name.data,
-                farm_location=form.farm_location.data,
-                farm_size=form.farm_size.data,
-                growing_practices=form.growing_practices.data,
-                payment_info=form.payment_info.data,
-                bio=form.bio.data,
-                upi_qr_code=filename if 'upi_qr_code' in request.files and request.files['upi_qr_code'].filename else None
-            )
-            db.session.add(farmer_profile)
-        
-        db.session.commit()
-        flash('Profile updated successfully!', 'success')
-        return redirect(url_for('farmer_dashboard'))
+            # Update or create farmer profile
+            if user.farmer_profile:
+                # Update existing profile
+                user.farmer_profile.farm_name = form.farm_name.data
+                user.farmer_profile.farm_location = form.farm_location.data
+                user.farmer_profile.farm_size = form.farm_size.data
+                user.farmer_profile.growing_practices = form.growing_practices.data
+                user.farmer_profile.payment_info = form.payment_info.data
+                user.farmer_profile.bio = form.bio.data
+            else:
+                # Create new profile
+                farmer_profile = FarmerProfile(
+                    user_id=user.id,
+                    farm_name=form.farm_name.data,
+                    farm_location=form.farm_location.data,
+                    farm_size=form.farm_size.data,
+                    growing_practices=form.growing_practices.data,
+                    payment_info=form.payment_info.data,
+                    bio=form.bio.data,
+                    upi_qr_code=filename if 'upi_qr_code' in request.files and request.files['upi_qr_code'].filename else None
+                )
+                db.session.add(farmer_profile)
+            
+            db.session.commit()
+            flash('Profile updated successfully!', 'success')
+            return redirect(url_for('farmer_dashboard'))
+            
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f'Error updating farmer profile: {str(e)}')
+            flash('Error updating profile. Please try again.', 'danger')
     
     return render_template('auth/profile.html', form=form, user=user, user_type='farmer')
 
@@ -177,30 +205,47 @@ def customer_profile():
         form = CustomerProfileForm()
     
     if form.validate_on_submit():
-        # Handle profile picture upload
-        if 'profile_picture' in request.files and request.files['profile_picture'].filename:
-            file = request.files['profile_picture']
-            if file and allowed_file(file.filename):
-                filename = save_file(file, app.config['UPLOAD_FOLDER'])
-                user.profile_picture = filename
-        
-        # Create or update customer profile
-        if user.customer_profile:
-            # Update existing profile
-            user.customer_profile.delivery_address = form.delivery_address.data
-            user.customer_profile.preferred_payment = form.preferred_payment.data
-        else:
-            # Create new profile
-            customer_profile = CustomerProfile(
-                user_id=user.id,
-                delivery_address=form.delivery_address.data,
-                preferred_payment=form.preferred_payment.data
-            )
-            db.session.add(customer_profile)
-        
-        db.session.commit()
-        flash('Profile updated successfully!', 'success')
-        return redirect(url_for('customer_dashboard'))
+        try:
+            # Handle profile picture upload
+            if 'profile_picture' in request.files and request.files['profile_picture'].filename:
+                file = request.files['profile_picture']
+                if file and allowed_file(file.filename):
+                    filename = save_file(file, current_app.config['UPLOAD_FOLDER'])
+                    if filename:
+                        # If there was a previous profile picture, try to delete it
+                        if user.profile_picture:
+                            try:
+                                old_file_path = os.path.join(current_app.root_path, current_app.config['UPLOAD_FOLDER'], user.profile_picture)
+                                if os.path.exists(old_file_path):
+                                    os.remove(old_file_path)
+                            except Exception as e:
+                                current_app.logger.error(f'Error deleting old profile picture: {str(e)}')
+                        user.profile_picture = filename
+                    else:
+                        flash('Error uploading profile picture.', 'danger')
+            
+            # Create or update customer profile
+            if user.customer_profile:
+                # Update existing profile
+                user.customer_profile.delivery_address = form.delivery_address.data
+                user.customer_profile.preferred_payment = form.preferred_payment.data
+            else:
+                # Create new profile
+                customer_profile = CustomerProfile(
+                    user_id=user.id,
+                    delivery_address=form.delivery_address.data,
+                    preferred_payment=form.preferred_payment.data
+                )
+                db.session.add(customer_profile)
+            
+            db.session.commit()
+            flash('Profile updated successfully!', 'success')
+            return redirect(url_for('customer_dashboard'))
+            
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f'Error updating customer profile: {str(e)}')
+            flash('Error updating profile. Please try again.', 'danger')
     
     return render_template('auth/profile.html', form=form, user=user, user_type='customer')
 

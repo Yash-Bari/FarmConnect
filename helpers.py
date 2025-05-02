@@ -18,23 +18,21 @@ def save_file(file, upload_folder):
     """Save a file to the upload folder with a unique name"""
     if file and allowed_file(file.filename):
         try:
+            # Generate unique filename with timestamp
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             filename = secure_filename(file.filename)
-            unique_filename = generate_unique_filename(filename)
+            base, ext = os.path.splitext(filename)
+            unique_filename = f"{base}_{timestamp}{ext}"
             
-            # Create year/month directory structure
-            today = datetime.today()
-            year_month = f"{today.year}/{today.month:02d}"
-            
-            # Create absolute path for file saving
-            upload_path = os.path.join(upload_folder, year_month)
-            os.makedirs(upload_path, exist_ok=True)
+            # Ensure upload folder exists
+            os.makedirs(upload_folder, exist_ok=True)
             
             # Save file using absolute path
-            file_path = os.path.join(upload_path, unique_filename)
+            file_path = os.path.join(upload_folder, unique_filename)
             file.save(file_path)
             
-            # Return URL-friendly path with forward slashes
-            return os.path.join(year_month, unique_filename).replace(os.path.sep, '/')
+            # Return just the filename for database storage
+            return unique_filename
             
         except Exception as e:
             print(f'Error saving file: {str(e)}')
